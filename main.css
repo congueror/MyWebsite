@@ -1,0 +1,59 @@
+@font-face {
+    font-family: SFDistantGalaxyAlternate;
+    src: url("font/SF Distant Galaxy Alternate.ttf");
+}
+@font-face {
+    font-family: SFDistantGalaxySymbols;
+    src: url("font/SF Distant Galaxy Symbols.ttf");
+}
+@font-face {
+    font-family: SFDistantGalaxy;
+    src: url("font/SF Distant Galaxy.ttf");
+}
+@font-face {
+    font-family: SFDistantGalaxyAltOutline;
+    src: url("font/SF Distant Galaxy AltOutline.ttf");
+}
+
+body {
+    font-family: Centaur, serif;
+    background: url("pictures/space.jpg");
+}
+
+h1, h2 {
+    color: #FFDE06;
+    font-size: 200%;
+}
+
+h1 {
+    font-size: xxx-large;
+    text-align: center;
+    font-family: "SFDistantGalaxyAlternate";
+}
+
+h2 {
+    font-family: SFDistantGalaxyAltOutline;
+}
+
+a {
+    color: green;
+}
+
+svg a {
+    font-size: 40px;
+    color: lightgray;
+}
+
+p {
+    background: crimson;
+    color: black;
+    font-family: Cambria, serif;
+}
+
+.yes {
+    font-family: "Arial Black", serif;
+}
+
+ul {
+    font-family: "Curlz MT", cursive;
+}
