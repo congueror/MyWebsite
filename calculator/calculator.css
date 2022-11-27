@@ -1,6 +1,11 @@
+body {
+    background-color: #36393F;
+}
+
 form {
     text-align: center;
 }
+
 input {
     resize: none;
     font-size: max(24px, 1em);
@@ -11,7 +16,7 @@ input {
 
 #input {
     font-size: max(24px, 1em);
-    background-color: #36393F;
+    background-color: white;
     border: 2px solid dimgray;
     padding: 0.0em 0.0em;
     width: 21em;
@@ -25,6 +30,32 @@ input {
     padding: 0.5em 0.5em;
     position: absolute;
     left: calc(70% - 0.5em);
+}
+
+#area {
+    margin: 3px;
+    border: 2px solid darkred;
+    padding: 10px;
+}
+
+#text {
+    color: white;
+}
+
+#text1 {
+    color: white;
+    margin-left: 20px;
+    border-left: 2px solid brown;
+    padding-left: 2px;
+}
+
+#stepByStep {
+    color: #D4D4D4;
+    padding-left: 10px;
+}
+
+#graph {
+    border: 2px solid white;
 }
 
 #buttons1 {
@@ -53,7 +84,7 @@ input {
 }
 
 .additionButton1 {
-    color: ghostwhite;
+    color: black;
     width: 35px;
     display: inline-block;
     margin-right: 6px;
@@ -61,7 +92,7 @@ input {
 }
 
 .additionButton2 {
-    color: ghostwhite;
+    color: black;
     width: 48px;
     display: inline-block;
     margin-right: 4px;
@@ -69,7 +100,7 @@ input {
 }
 
 .additionButton3 {
-    color: ghostwhite;
+    color: black;
     width: 68px;
     display: inline-block;
     margin-right: 4px;
