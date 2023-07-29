@@ -18,33 +18,3 @@ function onVisibilityChange() {
     wasHidden = isHidden;
     isHidden = document[hidden];
 }
-
-let c = document.getElementById("main");
-c.width = window.innerWidth;
-c.height = window.innerHeight;
-let ctx = c.getContext("2d");
-
-let previousTimestamp;
-let fun = null;
-
-function setupAnim(drawFunction) {
-    fun = drawFunction;
-    window.requestAnimationFrame(main);
-}
-
-function main(timestamp) {
-    window.requestAnimationFrame(main);
-
-    if (previousTimestamp === undefined) {
-        previousTimestamp = timestamp;
-        window.requestAnimationFrame(main);
-        return;
-    }
-
-    if (wasHidden) {
-        previousTimestamp = timestamp;
-        wasHidden = false;
-    }
-
-    window[fun](timestamp);
-}
