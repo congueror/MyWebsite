@@ -2,29 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test</title>
-    <link href="main.css" rel="stylesheet">
+    <title>Physics Simulations</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Palpatinyy</h1>
-    <h2>Sheev</h2>
-    <h3>The Senate</h3>
-    <pre>
-    Hello World
-    <strong>Bold </strong>
-    <em>Italic </em>
-    <a href="welcome.html">senate.com</a>
-    </pre>
-<!-- Fuck you -->
-    <p class="yes">
-        <abbr title="Yes, fuck off"><ins>fuck you</ins></abbr>
-    </p>
 
-    <ul>
-        <li><mark>Beautiful</mark></li>
-        <li><mark>Majestic</mark></li>
-    </ul>
+<h1>Projects:</h1>
 
-    <img src="https://preview.redd.it/7f6083czt2m41.png?width=960&crop=smart&auto=webp&s=daf3726b2a342b2a1e63aa982e8507159db71d5d" alt="Palpatiny">
+<script>
+    function redirect(loc) {
+        let i = location.pathname.indexOf("index.html");
+        loc = location.pathname.substring(0, i) + loc;
+        location.href = `${location.origin}${loc}${location.search}`
+    }
+</script>
+
+<button class="button-64" role="button" onclick="redirect('Simulations/Pendulum.html')"><span class="text">Pendulum</span></button>
+<button class="button-64" role="button" onclick="redirect('Simulations/Colliding-Blocks.html')"><span class="text">Collisions</span></button>
+
 </body>
 </html>
