@@ -9,21 +9,14 @@
 
 <h1>Projects:</h1>
 
-<script>
-    function redirect(loc) {
-        if (location.pathname.endsWith("index.html")) {
-            let i = location.pathname.indexOf("index.html");
-            loc = location.pathname.substring(0, i) + loc;
-            location.href = `${location.origin}${loc}${location.search}`
-        } else {
-            location.href += loc;
-        }
-    }
-</script>
+<script src="main.js"></script>
 
-<button class="button-64" role="button" onclick="redirect('Simulations/Pendulum.html')"><span
-        class="text">Pendulum</span></button>
-<button class="button-64" role="button" onclick="redirect('Simulations/Colliding-Blocks.html')"><span class="text">Collisions</span>
+<button class="button-64" role="button" onclick="redirect('Simulations/Pendulum.html')">
+    <span class="text">Pendulum</span>
+</button>
+
+<button class="button-64" role="button" onclick="redirect('Simulations/Colliding-Blocks.html')">
+    <span class="text">Collisions</span>
 </button>
 
 </body>

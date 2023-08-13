@@ -1,11 +1,62 @@
 body {
+    background-color: #36393F;
     margin: 0;
     padding: 0;
-    background-color: black;
 }
 
 canvas {
+    z-index: 0;
     position: fixed;
-    left: 0;
+    left: 64px;
     top: 0;
+}
+
+.manip_box {
+    z-index: 990;
+    position: absolute;
+    background-color: #d6e1fa;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #1f2025;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-family: Phantomsans, sans-serif;
+    font-size: 20px;
+    justify-content: center;
+    line-height: 1em;
+    max-width: 100%;
+    min-width: 140px;
+
+    padding: 5px;
+    margin-left: 80px;
+    margin-top: 5px;
+}
+
+.menu_button {
+    background-color: rgb(255, 215, 40);
+    background-image: url(../icons/home.png);
+    background-repeat: no-repeat;
+    background-size: 64px;
+    background-position: center;
+
+    border: 0;
+
+    max-width: 64px;
+    max-height: 64px;
+    width: 64px;
+    height: 64px;
+    padding: 0;
+}
+
+.menu_bar {
+    position: absolute;
+
+    background-color: rgb(255, 215, 40);
+    background-repeat: no-repeat;
+    background-position: center;
+
+    max-width: 64px;
+    width: 64px;
+    height: 100%;
+    padding: 0;
 }

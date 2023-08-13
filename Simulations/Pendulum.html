@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>Pendulum</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
+<script src="../main.js"></script>
+
 <body>
 <canvas id="main"></canvas>
-</body>
-<script src="helpers/mathHelper.js"></script>
 
+<div class="menu_bar">
+    <button class="menu_button" role="button" onclick="redirect('')"></button>
+</div>
+
+<div class="manip_box" style="margin-top: 90px">
+    Pendulum Settings <br>
+    Length: <input id="length_input" type="text"><br>
+    Angle: <input id="angle_input" type="text"><br>
+    Draw Force Vectors: <input id="draw_input" type="checkbox"><br>
+    Analyze Force Vectors: <input id="analyze_input" type="checkbox"><br>
+    <button class="reset_button" role="button" onclick="reset()">Reset</button>
+</div>
+</body>
+<script src="common/mathHelper.js"></script>
 <script src="pendulum.js"></script>
 
 </html>

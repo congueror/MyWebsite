@@ -26,7 +26,7 @@ class Pendulum {
     }
 
     calculatePeriod() {
-        let a = 2 * Math.PI * Math.sqrt( ( (this.length / 100) / gravity) );
+        let a = 2 * Math.PI * Math.sqrt(((this.length / 100) / gravity));
         let series = 0;
         for (let i = 0; i < 20; i++) {
             let num = factorial(2 * i);
@@ -125,42 +125,76 @@ c.width = window.innerWidth;
 c.height = window.innerHeight;
 let ctx = c.getContext("2d");
 
-let p1 = new Pendulum(window.innerWidth / 2, 25, 190, 67, true, true);
+let length = document.getElementById("length_input");
+length.value = "190";
+let angle = document.getElementById("angle_input");
+angle.value = "45";
+let draw_vectors = document.getElementById("draw_input");
+draw_vectors.checked = true;
+let analyze_vectors = document.getElementById("analyze_input");
+analyze_vectors.checked = true;
 
-//setupAnim('draw');
+const dt = 0.01;
 
-let dt = 0.01;
-let id = setInterval(draw, 10);
+let intervalId;
+let p1;
+let steps;
 
-let steps = 1;
-let oscillations = 0;
+let oscillations;
 let prevAngle;
-let prevChange = 0;
+let prevChange;
+let theoreticalPeriod,
+    experimentalPeriod,
+    error,
+    time;
 
-let theoreticalPeriod = p1.calculatePeriod();
-let experimentalPeriod = 0;
+reset();
+
+function reset() {
+    if (intervalId)
+        clearInterval(intervalId);
+
+    p1 = new Pendulum(window.innerWidth / 2, 25, Number.parseInt(length.value), Number.parseInt(angle.value), draw_vectors.checked, analyze_vectors.checked);
+    steps = 1;
+    oscillations = 0;
+    prevAngle = null;
+    prevChange = 0;
+    theoreticalPeriod = p1.calculatePeriod();
+    experimentalPeriod = 0;
+
+    intervalId = setInterval(draw, 10);
+}
 
 function draw() {
     if (prevAngle === null)
         prevAngle = p1.angle;
 
     ctx.clearRect(0, 0, c.width, c.height);
+    ctx.fillStyle = "#36393F";
+    ctx.fillRect(0, 0, c.width, c.height);
     p1.move(dt);
 
     steps++;
+    time = steps * dt;
     let change = p1.angle - prevAngle;
     if (Math.sign(prevChange) > 0 && Math.sin(change) < 0) {
         oscillations++;
-        experimentalPeriod = steps * dt / oscillations;
+        experimentalPeriod = time / oscillations;
     }
-    let error = Math.abs(theoreticalPeriod - experimentalPeriod) / experimentalPeriod * 100
 
-    ctx.fillStyle = "#000000";
+    if (oscillations === 0)
+        experimentalPeriod = time;
+
+    error = Math.abs(theoreticalPeriod - experimentalPeriod) / experimentalPeriod * 100;
+
+    ctx.fillStyle = "#d3d3d3";
     let fontSize = 20;
+    let x = 20;
     ctx.font = `${fontSize}px Verdana`;
-    ctx.fillText(`Experimental Period: ${experimentalPeriod.toFixed(5)}s`, 20, 20);
-    ctx.fillText(`Theoretical Period: ${theoreticalPeriod.toFixed(5)}s`, 20, 40);
-    ctx.fillText(`Percentile Error: ${error.toFixed(3)}%`, 20, 60);
+    ctx.fillText(`Time Step: ${time.toFixed(2)}s`, x, 20);
+    ctx.fillText(`Experimental Period: ${experimentalPeriod.toFixed(5)}s`, x, 40);
+    ctx.fillText(`Theoretical Period: ${theoreticalPeriod.toFixed(5)}s`, x, 60);
+    ctx.fillText(`Percentile Error: ${error.toFixed(3)}%`, x, 80);
 
     p1.draw();
     ctx.save();

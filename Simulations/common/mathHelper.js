@@ -11,6 +11,14 @@ function factorial(num) {
     return n;
 }
 
+function toBoolean(onORoff) {
+    if (onORoff === 'on')
+        return true;
+    if (onORoff === 'off')
+        return false;
+    return false;
+}
+
 function toRads(degrees) {
     return (degrees * Math.PI) / 180;
 }
