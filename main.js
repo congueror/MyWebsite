@@ -6,7 +6,7 @@ function redirect(loc) {
 
     let s1 = link.slice(0, i + main.length);
     let s2 = link.slice(i + main.length, j);
-    let s3 = link.slice(j);
+    let s3 = j === -1 ? "" : link.slice(j);
 
     location.href = s1 + loc + s3;
 }
