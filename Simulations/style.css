@@ -1,4 +1,5 @@
 body {
+    overflow-y: auto;
     background-color: #36393F;
     margin: 0;
     padding: 0;
@@ -6,9 +7,18 @@ body {
 
 canvas {
     z-index: 0;
-    position: fixed;
+    position: relative;
     left: 64px;
     top: 0;
+    margin-bottom: 0;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    border-bottom-color: #FFDE06;
+}
+
+#period_length {
+    float: left;
+    border-right: 2px solid #FFDE06;
 }
 
 .manip_box {
@@ -49,7 +59,7 @@ canvas {
 }
 
 .menu_bar {
-    position: absolute;
+    position: fixed;
 
     background-color: rgb(255, 215, 40);
     background-repeat: no-repeat;

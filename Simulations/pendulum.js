@@ -121,12 +121,22 @@ class Pendulum {
 }
 
 let c = document.getElementById("main");
-c.width = window.innerWidth;
+c.width = window.innerWidth - 64 - 17;
 c.height = window.innerHeight;
 let ctx = c.getContext("2d");
 
+{
+    let T_l = document.getElementById("period_length");
+    T_l.width = c.width / 2;
+    T_l.height = c.height / 2;
+
+    let T_a = document.getElementById("period_angle");
+    T_a.width = c.width / 2;
+    T_a.height = c.height / 2;
+}
+
 let length = document.getElementById("length_input");
-length.value = "190";
+length.value = "200";
 let angle = document.getElementById("angle_input");
 angle.value = "45";
 let draw_vectors = document.getElementById("draw_input");
@@ -149,6 +159,8 @@ let theoreticalPeriod,
     time;
 
 reset();
+period_length_graph();
+period_angle_graph();
 
 function reset() {
     if (intervalId)
@@ -192,13 +204,150 @@ function draw() {
     let x = 20;
     ctx.font = `${fontSize}px Verdana`;
     ctx.fillText(`Time Step: ${time.toFixed(2)}s`, x, 20);
-    ctx.fillText(`Experimental Period: ${experimentalPeriod.toFixed(5)}s`, x, 40);
-    ctx.fillText(`Theoretical Period: ${theoreticalPeriod.toFixed(5)}s`, x, 60);
-    ctx.fillText(`Percentile Error: ${error.toFixed(3)}%`, x, 80);
+    ctx.fillText(`Oscillations: ${oscillations}`, x, 40);
+    ctx.fillText(`Experimental Period: ${experimentalPeriod.toFixed(5)}s`, x, 60);
+    ctx.fillText(`Theoretical Period: ${theoreticalPeriod.toFixed(5)}s`, x, 80);
+    ctx.fillText(`Percentile Error: ${error.toFixed(3)}%`, x, 100);
 
     p1.draw();
     ctx.save();
 
     prevAngle = p1.angle;
     prevChange = change;
+}
+
+function createChart(id, xValues, theoretical, experimental, error, title, subtitle) {
+    return new Chart(id, {
+        type: "line",
+        data : {
+            labels: xValues,
+            datasets: [
+                {
+                    label: 'Theoretical Period',
+                    data: theoretical,
+                    borderColor: "red",
+                    fill: false
+                },
+                {
+                    label: 'Experimental Period',
+                    data: experimental,
+                    borderColor: "green",
+                    fill: false
+                },
+                {
+                    label: '%Error',
+                    data: error,
+                    borderColor: "blue",
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: false,
+            cubicInterpolationMode: 'monotone',
+            layout: {
+                padding: {
+                    left: 20
+                }
+            },
+            plugins: {
+                title: {
+                    text: title,
+                    display: true,
+                    color: '#E6E6FAFF'
+                },
+                subtitle: {
+                    text: subtitle,
+                    display: true,
+                    color: '#E6E6FAFF'
+                }
+            }
+        }
+    });
+}
+
+function period_length_graph() {
+    const xValues = [];
+    const expYValues = [];
+    const thYValues = [];
+    const errorYValues = [];
+    for (let i = 1; i < 10; i++) {
+        xValues.push(i * 50);
+
+        let pendulum = new Pendulum(0, 0, i * 50, Number.parseInt(angle.value), false, false);
+        let T = pendulum.calculatePeriod();
+        thYValues.push(T);
+
+        let steps = 1, oscillations = 0, time, prevAngle = null, prevChange = 0, expPeriod = 0;
+        do {
+            if (prevAngle === null)
+                prevAngle = pendulum.angle;
+
+            pendulum.move(dt);
+
+            steps++;
+
+            time = steps * dt;
+            let change = pendulum.angle - prevAngle;
+            if (Math.sign(prevChange) > 0 && Math.sin(change) < 0) {
+                oscillations++;
+                expPeriod = time / oscillations;
+            }
+
+            prevAngle = pendulum.angle;
+            prevChange = change;
+
+        } while (oscillations < 50);
+
+        expYValues.push(expPeriod);
+
+        let error = Math.abs(T - expPeriod) / expPeriod * 100;
+        errorYValues.push(error);
+    }
+
+    const chart = createChart("period_length", xValues, thYValues, expYValues, errorYValues,
+        `Period/Length Graph with Percentage Error at 50 oscillations and θ=${angle.value}°`,
+        'T=f(l)');
+}
+
+function period_angle_graph() {
+    const xValues = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165];
+    const expYValues = [];
+    const thYValues = [];
+    const errorYValues = [];
+    for (let i = 0; i < xValues.length; i++) {
+        let pendulum = new Pendulum(0, 0, Number.parseInt(length.value), xValues[i], false, false);
+        let T = pendulum.calculatePeriod();
+        thYValues.push(T);
+
+        let steps = 1, oscillations = 0, time, prevAngle = null, prevChange = 0, expPeriod = 0;
+        do {
+            if (prevAngle === null)
+                prevAngle = pendulum.angle;
+
+            pendulum.move(dt);
+
+            steps++;
+
+            time = steps * dt;
+            let change = pendulum.angle - prevAngle;
+            if (Math.sign(prevChange) > 0 && Math.sin(change) < 0) {
+                oscillations++;
+                expPeriod = time / oscillations;
+            }
+
+            prevAngle = pendulum.angle;
+            prevChange = change;
+
+        } while (oscillations < 50);
+
+        expYValues.push(expPeriod);
+
+        let error = Math.abs(T - expPeriod) / expPeriod * 100;
+        errorYValues.push(error);
+    }
+
+    const chart = createChart("period_angle", xValues, thYValues, expYValues, errorYValues,
+        `Period/Angle Graph with Percentage Error at 50 oscillations and L=${length.value}u`,
+        'T=f(θ)');
 }
