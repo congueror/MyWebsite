@@ -166,8 +166,8 @@ class Cube {
 }
 
 let c = document.getElementById("main");
-c.width = window.innerWidth;
-c.height = window.innerHeight;
+c.width = window.innerWidth - 64 - 17;
+c.height = window.innerHeight - 6;
 let ctx = c.getContext("2d");
 
 let mass1 = document.getElementById("mass1_input");
