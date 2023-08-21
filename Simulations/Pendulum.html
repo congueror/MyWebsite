@@ -23,6 +23,8 @@
     Pendulum Settings <br>
     Length: <input id="length_input" type="text"><br>
     Angle: <input id="angle_input" type="text"><br>
+    Gravity: <input id="gravity_input" type="text"><br>
+    Mass: <input id="mass_input" type="text" value="10"><br>
     Draw Force Vectors: <input id="draw_input" type="checkbox"><br>
     Analyze Force Vectors: <input id="analyze_input" type="checkbox"><br>
     <button class="reset_button" role="button" onclick="reset()">Reset</button>
@@ -30,6 +32,8 @@
 
 <canvas id="period_length"></canvas>
 <canvas id="period_angle"></canvas>
+<canvas id="period_gravity"></canvas>
+<canvas id="period_mass"></canvas>
 
 </body>
 <script src="common/mathHelper.js"></script>

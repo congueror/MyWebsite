@@ -21,6 +21,11 @@ canvas {
     border-right: 2px solid #FFDE06;
 }
 
+#period_gravity {
+    float: left;
+    border-right: 2px solid #FFDE06;
+}
+
 .manip_box {
     z-index: 990;
     position: absolute;

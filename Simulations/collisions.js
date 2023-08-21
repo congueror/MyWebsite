@@ -29,6 +29,10 @@ class Cube {
         this.mass = mass;
     }
 
+    calculateKineticEnergy() {
+        return (this.mass * this.xVelocity * this.xVelocity) / 2;
+    }
+
     collisionVelocity(cube) {
         let mA = this.mass, mB = cube.mass, uA = this.xVelocity, uB = cube.xVelocity;
         return (mA * uA + mB * (2 * uB - uA)) / (mA + mB);
@@ -170,6 +174,12 @@ c.width = window.innerWidth - 64 - 17;
 c.height = window.innerHeight - 6;
 let ctx = c.getContext("2d");
 
+{
+    //let v_v = document.getElementById("velocity");
+    //v_v.width = c.width / 2;
+    //v_v.height = c.height / 2;
+}
+
 let mass1 = document.getElementById("mass1_input");
 mass1.value = "100";
 let mass2 = document.getElementById("mass2_input");
@@ -184,6 +194,7 @@ const wall = new Wall(0, 10, 0, 3 * c.height / 4 + 1);
 
 let intervalId;
 let c1, c2, collisions;
+let systemEnergy;
 
 reset();
 
@@ -194,6 +205,8 @@ function reset() {
     c1 = new Cube(190, 3 * c.height / 4 - 41, 40, 40, Number(vel1.value), 0, Number(mass1.value));
     c2 = new Cube(80, 3 * c.height / 4 - 41, 40, 40, Number(vel2.value), 0, Number(mass2.value));
     collisions = 0;
+
+    systemEnergy = c1.calculateKineticEnergy() + c2.calculateKineticEnergy();
 
     intervalId = setInterval(draw, 10);
 }
@@ -206,7 +219,8 @@ function draw() {
     ctx.fillStyle = "#c5ccd5";
     let fontSize = 20;
     ctx.font = `${fontSize}px Verdana`;
-    ctx.fillText(`Collisions: ${collisions}`, c.width / 2 - fontSize, 20 + fontSize);
+    ctx.fillText(`Collisions: ${collisions}`, c.width / 2 - fontSize - 126, 20 + fontSize);
+    ctx.fillText(`Pi: ${Math.PI}...`, c.width / 2 - fontSize - 50, 40 + fontSize);
 
     ctx.strokeStyle = "#c5ccd5";
     ctx.beginPath();

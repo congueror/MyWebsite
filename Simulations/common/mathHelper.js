@@ -1,4 +1,4 @@
-const gravity = 9.81;
+const GRAVITY = 9.81;
 
 function factorial(num) {
     if (num === 0)
