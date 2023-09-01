@@ -14,7 +14,9 @@ class Graph {
         this.maxY = obj.maxY;
         this.minX = obj.minX;
         this.minY = obj.minY;
-        this.dataset = obj.dataset;
+
+        this.dataset = [];
+        obj.dataset.forEach(value => this.dataset.push(new Data(value)));
 
         let xAmount = (Math.abs(this.maxX) + Math.abs(this.minX)) / this.xIncrement;
         this.xCellSize = ((this.width - 40 - 50) / (xAmount));
@@ -126,20 +128,33 @@ class Graph {
         }
 
         for (const d in this.dataset) {
-            if (this.dataset[d].type === "data" && this.dataset[d].interpolation === "linear") {
-                this.dataLinearDraw(this.dataset[d]);
+            if (this.dataset[d].type === "data") {
+                switch (this.dataset[d].interpolation) {
+                    case "linear":
+                        this.dataLinearDraw(this.dataset[d]);
+                        break;
+                    case "quadratic":
+                        this.dataQuadraticDraw(this.dataset[d]);
+                        break;
+                    case "cubic":
+                        this.dataCubicDraw(this.dataset[d]);
+                        break;
+                }
+
             } else if (this.dataset[d].type === "function") {
                 this.functionDraw(this.dataset[d]);
+            } else if (this.dataset[d].type === "parametric_function") {
+                this.parametricFunctionDraw(this.dataset[d]);
             }
         }
     }
 
     getXPosition(x) {
-        return 50 + this.xCellSize / this.xIncrement * ( Math.abs(this.minX) + x );
+        return 50 + this.xCellSize / this.xIncrement * (Math.abs(this.minX) + x);
     }
 
     getYPosition(y) {
-        return this.height - 50 - this.yCellSize / this.yIncrement * ( Math.abs(this.minY) + y );
+        return this.height - 50 - this.yCellSize / this.yIncrement * (Math.abs(this.minY) + y);
     }
 
     dataLinearDraw(data) {
@@ -172,23 +187,210 @@ class Graph {
         }
     }
 
+    dataQuadraticDraw(data) {
+        this.ctx.strokeStyle = data.color;
+        this.ctx.lineWidth = 2;
+
+        for (let i = 0; i < data.x.length - 2; i++) {
+            let x0 = data.x[i], x1 = data.x[i + 1], x2 = data.x[i + 2];
+            let y0 = data.y[i], y1 = data.y[i + 1], y2 = data.y[i + 2];
+
+            let a0 = (y2 - y1) / (x2 - x1);
+            let a1 = (y1 - y0) / (x1 - x0);
+            let a = (a0 - a1) / (x2 - x0);
+            let b = (y1 - y0) / (x1 - x0);
+            let c = y0;
+
+            let p = function (x) {
+                return a * (x - x0) * (x - x1) + b * (x - x0) + c;
+            }
+
+            let newData = new Data({
+                type: "function",
+                fun: p,
+                domainBottom: x0,
+                domainTop: x1,
+                color: data.color,
+            });
+
+            this.functionDraw(newData);
+        }
+    }
+
+    dataCubicDraw(data) {
+        if (data.x.length === 2) {
+            this.dataLinearDraw(data);
+            return;
+        }
+
+        this.ctx.strokeStyle = data.color;
+        this.ctx.lineWidth = 2;
+
+        let n = data.x.length - 1;
+        let matrix = new Matrix(4 * n, 4 * n);
+        let scalar = new Matrix(4 * n, 1);
+
+        for (let i = 0; i < n; i++) {
+            let x1 = data.x[i], y1 = data.y[i],
+                x2 = data.x[i + 1], y2 = data.y[i + 1];
+            for (let j = 0; j < 4; j++) {
+                matrix.set(2 * i, j + i * 4, Math.pow(x1, 3 - j));
+                matrix.set(2 * i + 1, j + i * 4, Math.pow(x2, 3 - j));
+                scalar.set(2 * i, 0, y1);
+                scalar.set(2 * i + 1, 0, y2);
+            }
+
+        }
+
+        for (let i = 1; i < n; i++) {
+            let x = data.x[i];
+            let a = 3 * x * x, b = 2 * x;
+            let values = [a, b, 1, 0, -a, -b, -1, 0];
+            matrix.setRow(i + 2 * n - 1, values);
+        }
+
+        for (let i = 1; i < n; i++) {
+            let x = data.x[i];
+            let a = 6 * x;
+            let values = [a, 2, 0, 0, -a, -2, 0, 0];
+            matrix.setRow(i + (2 * n + n - 1) - 1, values);
+        }
+
+        matrix.set(4*n-2, 0, 6 * data.x[0]);
+        matrix.set(4*n-2, 1, 2);
+        matrix.set(4*n-1, 0, 6 * data.x[data.x.length - 1]);
+        matrix.set(4*n-1, 1, 2);
+
+        let gaussian = augmentMatrices(matrix, scalar);
+        gaussian.print();
+        let variables = gaussian.gaussianElimination();
+        gaussian.print();
+        variables.print();
+
+        for (let i = 0; i < variables.rows / 4; i++) {
+            let a = variables.get(i, 0),
+                b = variables.get(i+1, 0),
+                c = variables.get(i+2, 0),
+                d = variables.get(i+3, 0),
+                x0 = data.x[i],
+                x1 = data.x[i+1];
+
+            let newData = new Data({
+                type: "function",
+                fun: function (x) {
+                    return a * Math.pow(x, 3) + b * Math.pow(x, 2) + c * x + d;
+                },
+                domainBottom: x0,
+                domainTop: x1,
+                color: data.color,
+            });
+
+            this.functionDraw(newData);
+        }
+    }
+
     functionDraw(data) {
         this.ctx.strokeStyle = data.color;
         this.ctx.lineWidth = 2;
 
-        const d = 0.001;
+        let minX = Math.max(this.minX, data.domainBottom);
+        let maxX = Math.min(this.maxX, data.domainTop);
+
+        const d = 0.01;
         this.ctx.beginPath();
-        let y = data.fun(this.minX);
-        this.ctx.moveTo(this.getXPosition(this.minX), this.getYPosition(y));
-        for (let x = this.minX; x < this.maxX; x += d) {
+        let y = data.fun(minX);
+        this.ctx.moveTo(this.getXPosition(minX), this.getYPosition(y));
+        for (let x = minX; x < maxX; x += d) {
             y = data.fun(x);
             if (y <= this.maxY && y >= this.minY) {
                 this.ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
             } else {
+                this.ctx.stroke();
+                this.ctx.beginPath();
                 this.ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
             }
         }
         this.ctx.stroke();
+    }
+
+    parametricFunctionDraw(data) {
+        this.ctx.strokeStyle = data.color;
+        this.ctx.lineWidth = 2;
+
+        let minX = Math.max(this.minX, data.domainBottom);
+        let maxX = Math.min(this.maxX, data.domainTop);
+
+        const d = data.parameterIncrement;
+        this.ctx.beginPath();
+
+        let x = data.x_fun(data.parameterMin);
+        let y = data.y_fun(data.parameterMin);
+        this.ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+        for (let t = data.parameterMin; t < data.parameterMax; t += d) {
+            x = data.x_fun(t);
+            y = data.y_fun(t);
+
+            if (y <= this.maxY && y >= this.minY && x <= maxX && x >= minX) {
+                this.ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
+            } else {
+                this.ctx.stroke();
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+            }
+        }
+
+        this.ctx.stroke();
+    }
+}
+
+class Data {
+    static DEFAULTS = {
+        domainBottom: Number.NEGATIVE_INFINITY,
+        domainTop: Number.POSITIVE_INFINITY,
+        parameterIncrement: 0.01
+    };
+
+    constructor(obj, defaults) {
+        if (defaults === undefined)
+            defaults = {};
+
+        this.type = obj.type;
+        this.color = obj.color ? obj.color : "red";
+
+        if (this.type === "data") {
+            this.tryAssign(obj, ["interpolation", "x", "y"]);
+        }
+        if (this.type === "function") {
+            this.tryAssign(obj, ["fun"]);
+            this.defaultAssign(obj, defaults, ["domainBottom", "domainTop"]);
+        }
+        if (this.type === "parametric_function") {
+            this.tryAssign(obj, ["x_fun", "y_fun", "parameterMin", "parameterMax"]);
+            this.defaultAssign(obj, defaults, ["domainBottom", "domainTop", "parameterIncrement"]);
+        }
+    }
+
+    tryAssign(obj, parameters) {
+        for (const i in parameters) {
+            const p = parameters[i];
+            if (obj[p] === undefined)
+                throw `mandatory property ${p} was not defined in data of type ${this.type}.`
+            this[p] = obj[p];
+        }
+    }
+
+    defaultAssign(obj, defaults, parameters) {
+        for (const i in parameters) {
+            const p = parameters[i];
+
+            if (obj[p] === undefined) {
+                if (defaults[p] === undefined)
+                    this[p] = Data.DEFAULTS[p];
+                else
+                    this[p] = defaults[p];
+            } else
+                this[p] = obj[p];
+        }
     }
 }
 
@@ -206,9 +408,9 @@ new Graph("main", {
     dataset: [
         {
             type: "data",
-            interpolation: "linear",
-            x: [1, 3, 4, 7],
-            y: [2, 3, 9, 4],
+            interpolation: "cubic",
+            x: [1, 3, 4],
+            y: [2, 3, 9],
             color: "#0090de"
         },
         {
@@ -216,7 +418,53 @@ new Graph("main", {
             fun: function (x) {
                 return Math.sin(x);
             },
+            domainBottom: -Math.PI,
+            domainTop: Number.POSITIVE_INFINITY,
             color: "#00de04"
+        },
+        {
+            type: "function",
+            fun: function (x) {
+                return Math.pow(Math.E, 2 * x);
+            },
+            color: "#ded300"
+        },
+        {
+            type: "parametric_function",
+            x_fun: function (t) {
+                return Math.cos(t);
+            },
+            y_fun: function (t) {
+                return Math.sin(t);
+            },
+            parameterMin: 0,
+            parameterMax: 2 * Math.PI,
         }
     ]
 });
+
+/*
+let m1 = createMatrix(
+    [
+        [2, 1, 3],
+        [15, 2, 0],
+        [1, 3, 1]
+    ]
+);
+let m2 = createMatrix(
+    [
+        [10],
+        [5],
+        [3]
+    ]
+);
+
+m1.print();
+m2.print();
+
+let m = augmentMatrices(m1, m2);
+m.print();
+
+let vars = m.gaussianElimination();
+m.print();
+vars.print();*/

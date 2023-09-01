@@ -169,15 +169,15 @@ let theoreticalPeriod,
     error,
     time;
 
-reset();
+let chartLength = null,
+    chartAngle = null,
+    chartGravity = null,
+    chartMass = null;
 
 Chart.defaults.borderColor = '#676767';
 Chart.defaults.color = "#E6E6FAFF";
 
-period_length_graph();
-period_angle_graph();
-period_gravity_graph();
-period_mass_graph();
+reset();
 
 function reset() {
     if (angle.value > 180 || angle.value < 0) {
@@ -202,6 +202,11 @@ function reset() {
     experimentalPeriod = 0;
 
     intervalId = setInterval(draw, 10);
+
+    period_length_graph();
+    period_angle_graph();
+    period_gravity_graph();
+    period_mass_graph();
 }
 
 function draw() {
@@ -331,6 +336,9 @@ function calculateChartValues(pendulum, thPeriods, expPeriods, errors) {
 }
 
 function period_length_graph() {
+    if (chartLength !== null)
+        chartLength.destroy();
+
     const xValues = [];
     const expYValues = [];
     const thYValues = [];
@@ -342,12 +350,15 @@ function period_length_graph() {
         calculateChartValues(pendulum, thYValues, expYValues, errorYValues);
     }
 
-    const chart = createChart("period_length", xValues, thYValues, expYValues, errorYValues,
+    chartLength = createChart("period_length", xValues, thYValues, expYValues, errorYValues,
         `Period/Length Graph with Percentage Error at 50 oscillations and θ=${angle.value}° | g=${g.value}m/s^2`,
         'T=f(l)');
 }
 
 function period_angle_graph() {
+    if (chartAngle !== null)
+        chartAngle.destroy();
+
     const xValues = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180];
     const expYValues = [0];
     const thYValues = [0];
@@ -361,12 +372,15 @@ function period_angle_graph() {
     thYValues.push(0);
     errorYValues.push(0);
 
-    const chart = createChart("period_angle", xValues, thYValues, expYValues, errorYValues,
+    chartAngle = createChart("period_angle", xValues, thYValues, expYValues, errorYValues,
         `Period/Angle Graph with Percentage Error at 50 oscillations and L=${length.value}u | g=${g.value}m/s^2`,
         'T=f(θ)');
 }
 
 function period_gravity_graph() {
+    if (chartGravity !== null)
+        chartGravity.destroy();
+
     const xValues = [0, 0.66, 1.62, 3.7, 8.87, GRAVITY, 10.44, 24.79, 274.20];
     const expYValues = [0];
     const thYValues = [0];
@@ -376,12 +390,15 @@ function period_gravity_graph() {
         calculateChartValues(pendulum, thYValues, expYValues, errorYValues);
     }
 
-    const chart = createChart("period_gravity", xValues, thYValues, expYValues, errorYValues,
+    chartGravity = createChart("period_gravity", xValues, thYValues, expYValues, errorYValues,
         `Period/Gravity Graph with Percentage Error at 50 oscillations and L=${length.value}u | θ=${angle.value}°`,
         'T=f(g)');
 }
 
 function period_mass_graph() {
+    if (chartMass !== null)
+        chartMass.destroy();
+
     const xValues = [0];
     const expYValues = [];
     const thYValues = [];
@@ -397,7 +414,7 @@ function period_mass_graph() {
         errorYValues.push(errorYValues[0]);
     }
 
-    const chart = createChart("period_mass", xValues, thYValues, expYValues, errorYValues,
+    chartMass = createChart("period_mass", xValues, thYValues, expYValues, errorYValues,
         `Period/Mass Graph with Percentage Error at 50 oscillations and L=${length.value}u | θ=${angle.value}° | g=${g.value}m/s^2`,
         'T=f(m)');
 }
