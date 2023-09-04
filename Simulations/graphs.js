@@ -1,13 +1,19 @@
 class Graph {
 
-    constructor(id, obj) {
-        let c = document.getElementById(id);
-        if (!c instanceof HTMLCanvasElement)
-            throw `Element id of ${id} does not belong to a canvas element.`;
-        this.width = c.width;
-        this.height = c.height;
+    constructor(id, width, height, obj) {
+        let div = document.getElementById(id);
+        div.width = width;
+        div.height = height;
+        if (!div instanceof HTMLDivElement)
+            throw `Element id of ${id} does not belong to a div element.`;
+        let c = document.createElement("canvas");
+        c.width = width;
+        c.height = height;
+        div.appendChild(c);
         this.ctx = c.getContext("2d");
 
+        this.width = width;
+        this.height = height;
         this.xIncrement = obj.xIncrement;
         this.yIncrement = obj.yIncrement;
         this.maxX = obj.maxX;
@@ -19,9 +25,9 @@ class Graph {
         obj.dataset.forEach(value => this.dataset.push(new Data(value)));
 
         let xAmount = (Math.abs(this.maxX) + Math.abs(this.minX)) / this.xIncrement;
-        this.xCellSize = ((this.width - 40 - 50) / (xAmount));
+        this.xCellSize = ((width - 40 - 50) / (xAmount));
         let yAmount = (Math.abs(this.maxY) + Math.abs(this.minY)) / this.yIncrement;
-        this.yCellSize = ((this.height - 50 - 40) / (yAmount));
+        this.yCellSize = ((height - 50 - 40) / (yAmount));
 
         if (obj.xIncrement > obj.maxX || obj.yIncrement > obj.maxY)
             throw 'Increment value cannot be greater than the maximum.';
@@ -48,7 +54,7 @@ class Graph {
             this.ctx.lineTo(x, 40);
             this.ctx.stroke();
 
-            t = this.minX + 2 * i;
+            t = this.minX + this.xIncrement * i;
             let xWidth = this.ctx.measureText(t).width;
             this.ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
@@ -76,7 +82,7 @@ class Graph {
             this.ctx.lineTo(this.width - 40, y);
             this.ctx.stroke();
 
-            t = this.minY + 2 * i;
+            t = this.minY + this.yIncrement * i;
             let yWidth = this.ctx.measureText(t).width;
             this.ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
         }
@@ -161,30 +167,23 @@ class Graph {
         this.ctx.strokeStyle = data.color;
         this.ctx.lineWidth = 2;
 
-        let xS = [];
-        let yS = [];
+        for (let i = 0; i < data.x.length; i++) {
+            this.ctx.beginPath();
+            this.ctx.arc(this.getXPosition(data.x[i]), this.getYPosition(data.y[i]), 5, 0, 2 * Math.PI);
+            this.ctx.stroke();
+        }
 
         this.ctx.beginPath();
 
         let x = this.getXPosition(data.x[0]);
         let y = this.getYPosition(data.y[0]);
-        xS.push(x);
-        yS.push(y);
         this.ctx.moveTo(x, y);
         for (let i = 1; i < data.x.length; i++) {
             x = this.getXPosition(data.x[i]);
             y = this.getYPosition(data.y[i]);
-            xS.push(x);
-            yS.push(y);
             this.ctx.lineTo(x, y);
         }
         this.ctx.stroke();
-
-        for (let i = 0; i < data.x.length; i++) {
-            this.ctx.beginPath();
-            this.ctx.arc(xS[i], yS[i], 5, 0, 2 * Math.PI);
-            this.ctx.stroke();
-        }
     }
 
     dataQuadraticDraw(data) {
@@ -226,6 +225,12 @@ class Graph {
         this.ctx.strokeStyle = data.color;
         this.ctx.lineWidth = 2;
 
+        for (let i = 0; i < data.x.length; i++) {
+            this.ctx.beginPath();
+            this.ctx.arc(this.getXPosition(data.x[i]), this.getYPosition(data.y[i]), 5, 0, 2 * Math.PI);
+            this.ctx.stroke();
+        }
+
         let n = data.x.length - 1;
         let matrix = new Matrix(4 * n, 4 * n);
         let scalar = new Matrix(4 * n, 1);
@@ -245,21 +250,33 @@ class Graph {
         for (let i = 1; i < n; i++) {
             let x = data.x[i];
             let a = 3 * x * x, b = 2 * x;
-            let values = [a, b, 1, 0, -a, -b, -1, 0];
+            let values = new Matrix(1, matrix.columns);
+            values.set(0, (i-1)*4, a);
+            values.set(0, (i-1)*4+1, b);
+            values.set(0, (i-1)*4+2, 1);
+
+            values.set(0, (i)*4, -a);
+            values.set(0, (i)*4+1, -b);
+            values.set(0, (i)*4+2, -1);
             matrix.setRow(i + 2 * n - 1, values);
         }
 
         for (let i = 1; i < n; i++) {
             let x = data.x[i];
             let a = 6 * x;
-            let values = [a, 2, 0, 0, -a, -2, 0, 0];
+            let values = new Matrix(1, matrix.columns);
+            values.set(0, (i-1)*4, a);
+            values.set(0, (i-1)*4+1, 2);
+
+            values.set(0, (i)*4, -a);
+            values.set(0, (i)*4+1, -2);
             matrix.setRow(i + (2 * n + n - 1) - 1, values);
         }
 
         matrix.set(4*n-2, 0, 6 * data.x[0]);
         matrix.set(4*n-2, 1, 2);
-        matrix.set(4*n-1, 0, 6 * data.x[data.x.length - 1]);
-        matrix.set(4*n-1, 1, 2);
+        matrix.set(4*n-1, 4*n-4, 6 * data.x[data.x.length - 1]);
+        matrix.set(4*n-1, 4*n-3, 2);
 
         let gaussian = augmentMatrices(matrix, scalar);
         gaussian.print();
@@ -268,10 +285,10 @@ class Graph {
         variables.print();
 
         for (let i = 0; i < variables.rows / 4; i++) {
-            let a = variables.get(i, 0),
-                b = variables.get(i+1, 0),
-                c = variables.get(i+2, 0),
-                d = variables.get(i+3, 0),
+            let a = variables.get(4*i, 0),
+                b = variables.get(4*i+1, 0),
+                c = variables.get(4*i+2, 0),
+                d = variables.get(4*i+3, 0),
                 x0 = data.x[i],
                 x1 = data.x[i+1];
 
@@ -394,23 +411,19 @@ class Data {
     }
 }
 
-let c = document.getElementById("main");
-c.width = window.innerWidth - 64 - 17;
-c.height = window.innerHeight - 6;
-
-new Graph("main", {
-    xIncrement: 2,
-    yIncrement: 2,
-    maxX: 11,
-    maxY: 10,
-    minX: -10,
-    minY: -9,
+new Graph("main", window.innerWidth - 64 - 17, window.innerHeight - 6, {
+    xIncrement: 1,
+    yIncrement: 1,
+    maxX: 16,
+    maxY: 16,
+    minX: -16,
+    minY: -16,
     dataset: [
         {
             type: "data",
             interpolation: "cubic",
-            x: [1, 3, 4],
-            y: [2, 3, 9],
+            x: [1, 3, 5, 8],
+            y: [2, 3, 9, 10],
             color: "#0090de"
         },
         {
