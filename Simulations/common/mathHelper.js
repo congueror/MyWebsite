@@ -68,6 +68,42 @@ function augmentMatrices(m1, m2) {
     return newMatrix;
 }
 
+class Domain {
+    constructor(s) {
+        s = s.replaceAll(' ', '');
+
+        if (!(s.startsWith('(') || s.startsWith('[')))
+            throw `There was an error parsing the domain ${s}\n`;
+        if (!(s.endsWith(')') || s.endsWith(']')))
+            throw `There was an error parsing the domain ${s}\n`;
+        if (!s.includes(','))
+            throw `There was an error parsing the domain ${s}\n`;
+
+        this.bottom = s.startsWith('(') ? 'open' : 'closed';
+        this.top = s.endsWith(')') ? 'open' : 'closed';
+
+        s = s.replaceAll(',', ' ').substr(1);
+        s = s.substr(0, s.length - 1);
+
+        let temp = '', num = '', i = 0;
+        while (temp !== ' ' && temp !== undefined) {
+            num += s[i];
+            i++;
+            temp = s[i];
+        }
+        this.min = Number.parseFloat(num);
+        s = s.substr(i);
+
+        temp = ''; num = ''; i = 0;
+        while (temp !== ' ' && temp !== undefined) {
+            num += s[i];
+            i++;
+            temp = s[i];
+        }
+        this.max = Number.parseFloat(num);
+    }
+}
+
 class Matrix {
     static I = function (rows, columns) {
         let m = new Matrix(rows, columns);
@@ -180,7 +216,7 @@ class Matrix {
 
             this.swapRows(j, maxR);
 
-            this.multiplyRow(j, 1/this.get(j, j));
+            this.multiplyRow(j, 1 / this.get(j, j));
 
             for (let i = j + 1; i < this.rows; i++) {
                 let n = this.table[i][j];

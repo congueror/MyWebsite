@@ -174,7 +174,7 @@ class Graph {
                     this.dataset[d].fun(ctx, this.dataset[d], this);
                 }
             } catch (e) {
-                console.log(`There was an error loading dataset entry #${d} of type ${this.dataset[d].type}.\n` + e);
+                console.log(`There was an error loading dataset entry ${d} of type ${this.dataset[d].type}.\n` + e);
             }
         }
 
@@ -252,8 +252,7 @@ class Graph {
             let newData = new Data({
                 type: "function",
                 fun: p,
-                domainBottom: x0,
-                domainTop: x1,
+                domain: `[${x0},${x1}]`,
                 color: data.color,
             });
 
@@ -328,8 +327,7 @@ class Graph {
                 fun: function (x) {
                     return a * Math.pow(x, 3) + b * Math.pow(x, 2) + c * x + d;
                 },
-                domainBottom: x0,
-                domainTop: x1,
+                domain: `[${x0},${x1}]`,
                 color: data.color,
             });
 
@@ -361,8 +359,7 @@ class Graph {
                 }
                 return sum1 / sum2;
             },
-            domainBottom: data.x[0],
-            domainTop: data.x[n - 1],
+            domain: `[${data.x[0]},${data.x[n - 1]}]`,
             color: data.color,
         });
 
@@ -373,8 +370,9 @@ class Graph {
         ctx.strokeStyle = data.color;
         ctx.lineWidth = 2;
 
-        let minX = Math.max(this.minX, data.domainBottom);
-        let maxX = Math.min(this.maxX, data.domainTop);
+        let domain = new Domain(data.domain);
+        let minX = Math.max(this.minX, domain.min);
+        let maxX = Math.min(this.maxX, domain.max);
 
         const d = 0.01;
         ctx.beginPath();
@@ -398,8 +396,9 @@ class Graph {
         ctx.strokeStyle = data.color;
         ctx.lineWidth = 2;
 
-        let minX = Math.max(this.minX, data.domainBottom);
-        let maxX = Math.min(this.maxX, data.domainTop);
+        let domain = new Domain(data.domain);
+        let minX = Math.max(this.minX, domain.min);
+        let maxX = Math.min(this.maxX, domain.max);
 
         const d = data.parameterIncrement;
         ctx.beginPath();
@@ -407,7 +406,8 @@ class Graph {
         let x = data.x_fun(data.parameterMin);
         let y = data.y_fun(data.parameterMin);
         ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
-        for (let t = data.parameterMin; t < data.parameterMax; t += d) {
+        let minT = data.parameterMin, maxT = data.parameterMax;
+        for (let t = minT; t < maxT; t += d) {
             x = data.x_fun(t);
             y = data.y_fun(t);
 
@@ -426,8 +426,7 @@ class Graph {
 
 class Data {
     static DEFAULTS = {
-        domainBottom: Number.NEGATIVE_INFINITY,
-        domainTop: Number.POSITIVE_INFINITY,
+        domain: `(${Number.NEGATIVE_INFINITY},${Number.POSITIVE_INFINITY})`,
         parameterIncrement: 0.01
     };
 
@@ -443,11 +442,11 @@ class Data {
         }
         if (this.type === "function") {
             this.tryAssign(obj, ["fun"]);
-            this.defaultAssign(obj, defaults, ["domainBottom", "domainTop"]);
+            this.defaultAssign(obj, defaults, ["domain"]);
         }
         if (this.type === "parametric_function") {
             this.tryAssign(obj, ["x_fun", "y_fun", "parameterMin", "parameterMax"]);
-            this.defaultAssign(obj, defaults, ["domainBottom", "domainTop", "parameterIncrement"]);
+            this.defaultAssign(obj, defaults, ["domain", "parameterIncrement"]);
         }
         if (this.type === "custom") {
             this.tryAssign(obj, ["fun"]);
@@ -495,29 +494,21 @@ const graph = new Graph("main", window.innerWidth - 64 - 17, window.innerHeight 
     dataset: [
         {
             type: "data",
+            color: "#0090de",
             interpolation: "polynomial",
             x: [1, 3, 5, 8],
             y: [2, 3, 9, 10],
-            color: "#0090de"
         },
         {
             type: "function",
+            color: "#0090de",
             fun: function (x) {
-                return Math.sin(x);
+                return Math.pow(Math.E, x);
             },
-            domainBottom: -Math.PI,
-            domainTop: Number.POSITIVE_INFINITY,
-            color: "#00de04"
-        },
-        {
-            type: "function",
-            fun: function (x) {
-                return Math.pow(Math.E, 2 * x);
-            },
-            color: "#ded300"
         },
         {
             type: "parametric_function",
+            color: "#0090de",
             x_fun: function (t) {
                 return Math.cos(t);
             },
@@ -544,6 +535,7 @@ const functionDefault = new Data({
         return Math.pow(Math.E, x);
     },
 });
+functionDefault.funText = "return Math.pow(Math.E, x);";
 const parametricFunctionDefault = new Data({
     type: "parametric_function",
     color: "#0090de",
@@ -556,6 +548,8 @@ const parametricFunctionDefault = new Data({
     parameterMin: 0,
     parameterMax: 2 * Math.PI,
 });
+parametricFunctionDefault.xFunText = "return Math.cos(t);";
+parametricFunctionDefault.yFunText = "return Math.sin(t);";
 const customDefault = new Data({
     type: "custom",
     color: "#0090de",
@@ -567,6 +561,7 @@ const customDefault = new Data({
 
 addData(dataDefault);
 addData(functionDefault);
+addData(parametricFunctionDefault);
 
 function addData(data) {
     let s = document.getElementById("datasets");
@@ -584,7 +579,7 @@ function addData(data) {
         ["custom", "Custom JS Script"],
     ], data.type, "Type");
 
-    f.innerHTML += ` <code>color</code>: <input type='color' value="${data.color}" onchange="onSettingsChange(${data},${dataIndex})">`;
+    f.innerHTML += ` <code>color</code>: <input type='color' value="${data.color}" onchange="onSettingsChange(${dataIndex})">`;
 
     fillDataType(data, f, dataIndex);
 
@@ -622,13 +617,35 @@ function fillDataType(data, f, dataIndex) {
 
         f.appendChild(document.createElement("br"));
     } else if (data.type === "function") {
-        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The equation in y=f(x) that will be displayed </span></div>";
-        f.innerHTML += `<code>fun</code><span>: y = </span> <input type='text' value='' onchange="onSettingsChange(${dataIndex})">`; //TODO: Symbolic Calculator
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The equation in y=f(x) that will be displayed. f(x) is expressed as a javascript function with x as a number parameter. </span></div>";
+        f.innerHTML += `<code>fun</code><span>: y = </span> <span class="js_text">function(x) {</span> <br>`; //TODO: JS Syntax
+        f.innerHTML += `<textarea class="js_area" onchange="onSettingsChange(${dataIndex})" spellcheck="false">${data.funText}</textarea> <br>`;
+        f.innerHTML += '<span class="js_text">}</span>';
 
         f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The domain of the function. </span></div>";
-        f.innerHTML += `<span>Domain: </span> <input type='text' value='(${data.domainBottom},${data.domainTop})' onchange="onSettingsChange(${dataIndex})"> <span>`; //TODO: Domain Parser
+        f.innerHTML += `<span>Domain: </span> <input type='text' value='${data.domain}' onchange="onSettingsChange(${dataIndex})"> <span>`;
     } else if (data.type === "parametric_function") {
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The equation in x=f(t) that will be displayed where t is the common parameter between y and x. f(t) is expressed as a javascript function with t as a number parameter. </span></div>";
+        f.innerHTML += `<code>x_fun</code><span>: x = </span> <span class="js_text">function(t) {</span> <br>`; //TODO: JS Syntax
+        f.innerHTML += `<textarea class="js_area" onchange="onSettingsChange(${dataIndex})" spellcheck="false">${data.xFunText}</textarea> <br>`;
+        f.innerHTML += '<span class="js_text">}</span>';
 
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The equation in y=f(t) that will be displayed where t is the common parameter between y and x. f(t) is expressed as a javascript function with t as a number parameter. </span></div>";
+        f.innerHTML += `<code>y_fun</code><span>: y = </span> <span class="js_text">function(t) {</span> <br>`; //TODO: JS Syntax
+        f.innerHTML += `<textarea class="js_area" onchange="onSettingsChange(${dataIndex})" spellcheck="false">${data.yFunText}</textarea> <br>`;
+        f.innerHTML += '<span class="js_text">}</span>';
+
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The minimum value of the common parameter (t). </span></div>";
+        f.innerHTML += `<span>Parameter Minimum Value: </span> <input type='text' value='${data.parameterMin}' onchange="onSettingsChange(${dataIndex})"> <span>`; //TODO: To domain
+
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The maximum value of the common parameter (t). </span></div>";
+        f.innerHTML += `<span>Parameter Maximum Value: </span> <input type='text' value='${data.parameterMax}' onchange="onSettingsChange(${dataIndex})"> <span>`;
+
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The domain of the function. </span></div>";
+        f.innerHTML += `<span>Domain: </span> <input type='text' value='${data.domain}' onchange="onSettingsChange(${dataIndex})"> <span>`;
+
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The scale of which the t values will be incremented by. </span></div>";
+        f.innerHTML += `<span>Parameter Increment: </span> <input type='text' value='${data.parameterIncrement}' onchange="onSettingsChange(${dataIndex})"> <span>`;
     }
 }
 
@@ -662,15 +679,14 @@ async function onSettingsChange(dataIndex) {
     } else {
         let datasets = document.getElementById("datasets");
         let d = datasets.children[dataIndex];
-        let g = graph.dataset[dataIndex];
-        let newData = {};
+        let newData = {}, dataObj = null;
 
-        g.type = d.children[2].value;
-        g.color = d.children[4].value;
+        newData.type = d.children[2].value;
+        newData.color = d.children[4].value;
 
-        if (g.type === "data") {
+        if (newData.type === "data") {
             try {
-                g.interpolation = d.children[9].value;
+                newData.interpolation = d.children[9].value;
                 let xy = d.children[14].value;
                 xy = xy.replaceAll('\n', ' ');
                 let decoded = await decodeCoordinates(xy);
@@ -678,10 +694,43 @@ async function onSettingsChange(dataIndex) {
                     return;
                 }
 
-                g.x = decoded[0];
-                g.y = decoded[1];
+                newData.x = decoded[0];
+                newData.y = decoded[1];
+
+                dataObj = new Data(newData);
             } catch (e) {
-                fillDataType(dataDefault, d, dataIndex);
+                dataObj = dataDefault;
+            }
+        } else if (newData.type === "function") {
+            try {
+                let functionValue = d.children[11].value.replaceAll('\n', ' ');
+                newData.fun = new Function('x', functionValue);
+                newData.funText = d.children[11].value;
+                newData.domain = d.children[17].value;
+
+                dataObj = new Data(newData);
+                dataObj.funText = newData.funText;
+            } catch (e) {
+                dataObj = functionDefault;
+            }
+        } else if (newData.type === "parametric_function") {
+            try {
+                let xFunction = d.children[11].value.replaceAll('\n', ' ');
+                let yFunction = d.children[20].value.replaceAll('\n', ' ');
+                newData.x_fun = new Function('t', xFunction);
+                newData.y_fun = new Function('t', yFunction);
+                newData.xFunText = d.children[11].value;
+                newData.yFunText = d.children[20].value;
+                newData.parameterMin = Number.parseFloat(d.children[26].value);
+                newData.parameterMax = Number.parseFloat(d.children[31].value);
+                newData.domain = d.children[36].value;
+                newData.parameterIncrement = Number.parseFloat(d.children[41].value);
+
+                dataObj = new Data(newData);
+                dataObj.xFunText = newData.xFunText;
+                dataObj.yFunText = newData.yFunText;
+            } catch (e) {
+                dataObj = parametricFunctionDefault;
             }
         }
 
@@ -689,7 +738,11 @@ async function onSettingsChange(dataIndex) {
             d.removeChild(d.children[i]);
         }
 
-        fillDataType(g, d, dataIndex);
+        graph.dataset[dataIndex] = dataObj;
+
+        d.children[2].setAttribute("value", newData.type);
+        d.children[4].setAttribute("value", newData.color);
+        fillDataType(dataObj, d, dataIndex);
     }
 
     graph.redraw();
