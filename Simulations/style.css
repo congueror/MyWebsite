@@ -16,14 +16,8 @@ canvas {
 }
 
 #main {
-    z-index: 0;
     position: relative;
     left: 64px;
-    top: 0;
-    margin-bottom: 0;
-    border-bottom-width: 2px;
-    border-bottom-style: solid;
-    border-bottom-color: #FFDE06;
 }
 
 .manip_box {
@@ -64,6 +58,7 @@ canvas {
 }
 
 .menu_bar {
+    z-index: 1000;
     position: fixed;
 
     background-color: rgb(255, 215, 40);

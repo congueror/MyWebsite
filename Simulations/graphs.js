@@ -1,16 +1,20 @@
 class Graph {
 
     constructor(id, width, height, obj) {
+        this.id = id;
         let div = document.getElementById(id);
-        div.width = width;
-        div.height = height;
+        div.style = `width:${width}px; height:${height}px`;
         if (!div instanceof HTMLDivElement)
             throw `Element id of ${id} does not belong to a div element.`;
-        let c = document.createElement("canvas");
-        c.width = width;
-        c.height = height;
-        div.appendChild(c);
-        this.ctx = c.getContext("2d");
+
+        let repeat = true;
+        while (repeat) {
+            repeat = false;
+            for (const child of div.children) {
+                div.removeChild(child);
+                repeat = true;
+            }
+        }
 
         this.width = width;
         this.height = height;
@@ -32,127 +36,152 @@ class Graph {
         if (obj.xIncrement > obj.maxX || obj.yIncrement > obj.maxY)
             throw 'Increment value cannot be greater than the maximum.';
 
-        this.ctx.fillStyle = "#D3D3D3FF";
-        this.ctx.font = "50px Verdana";
-        this.ctx.fillText("Test | Work in Progress", 50, 50);
-        this.draw();
+        this.draw(div);
     }
 
-    draw() {
-        this.ctx.strokeStyle = "#676767";
-        this.ctx.fillStyle = "#D3D3D3FF";
-        this.ctx.font = "20px Verdana";
-        this.ctx.lineWidth = 2;
+    redraw() {
+        let div = document.getElementById(this.id);
+        let repeat = true;
+        while (repeat) {
+            repeat = false;
+            for (const child of div.children) {
+                div.removeChild(child);
+                repeat = true;
+            }
+        }
 
-        let baseWidth = this.ctx.measureText(9).width;
+        this.draw(div);
+    }
+
+    draw(element) {
+        let c = document.createElement("canvas");
+        c.width = this.width;
+        c.height = this.height;
+        c.style = "position:absolute;";
+        element.appendChild(c);
+        let ctx = c.getContext("2d");
+
+        ctx.strokeStyle = "#676767";
+        ctx.fillStyle = "#D3D3D3FF";
+        ctx.font = "20px Verdana";
+        ctx.lineWidth = 2;
+
+        let baseWidth = ctx.measureText(9).width;
         let x, t, xAmount = (Math.abs(this.maxX) + Math.abs(this.minX)) / this.xIncrement;
         for (let i = 0; i <= xAmount; i++) {
             x = 50 + this.xCellSize * i;
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, this.height - 40);
-            this.ctx.lineTo(x, 40);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, this.height - 40);
+            ctx.lineTo(x, 40);
+            ctx.stroke();
 
             t = this.minX + this.xIncrement * i;
-            let xWidth = this.ctx.measureText(t).width;
-            this.ctx.fillText(t, x - xWidth / 2, this.height - 20);
+            let xWidth = ctx.measureText(t).width;
+            ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
 
         let xDec = xAmount - Math.trunc(xAmount);
         if (xDec > 0) {
             x = x + this.xCellSize * (xDec);
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, this.height - 40);
-            this.ctx.lineTo(x, 40);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, this.height - 40);
+            ctx.lineTo(x, 40);
+            ctx.stroke();
 
             t = t + this.xIncrement * xDec;
-            let xWidth = this.ctx.measureText(t).width;
-            this.ctx.fillText(t, x - xWidth / 2, this.height - 20);
+            let xWidth = ctx.measureText(t).width;
+            ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
 
         let y, yAmount = (Math.abs(this.maxY) + Math.abs(this.minY)) / this.yIncrement;
         for (let i = 0; i <= yAmount; i++) {
             y = this.height - 50 - this.yCellSize * i;
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(40, y);
-            this.ctx.lineTo(this.width - 40, y);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(40, y);
+            ctx.lineTo(this.width - 40, y);
+            ctx.stroke();
 
             t = this.minY + this.yIncrement * i;
-            let yWidth = this.ctx.measureText(t).width;
-            this.ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
+            let yWidth = ctx.measureText(t).width;
+            ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
         }
 
         let yDec = yAmount - Math.trunc(yAmount);
         if (yDec > 0) {
             y = y - this.yCellSize * yDec;
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(40, y);
-            this.ctx.lineTo(this.width - 40, y);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(40, y);
+            ctx.lineTo(this.width - 40, y);
+            ctx.stroke();
 
             t = t + this.yIncrement * yDec;
-            let yWidth = this.ctx.measureText(t).width;
-            this.ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
+            let yWidth = ctx.measureText(t).width;
+            ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
         }
 
         //Draw Axes
-        this.ctx.strokeStyle = "#000000";
-        this.ctx.lineWidth = 2;
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 2;
 
         if (this.minX >= 0) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(50, 40);
-            this.ctx.lineTo(50, this.height - 40);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(50, 40);
+            ctx.lineTo(50, this.height - 40);
+            ctx.stroke();
         } else {
             x = 50 + this.xCellSize * (Math.abs(this.minX) / this.xIncrement);
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, 40);
-            this.ctx.lineTo(x, this.height - 40);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, 40);
+            ctx.lineTo(x, this.height - 40);
+            ctx.stroke();
         }
 
         if (this.minY >= 0) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(40, this.height - 50);
-            this.ctx.lineTo(this.width - 40, this.height - 50);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(40, this.height - 50);
+            ctx.lineTo(this.width - 40, this.height - 50);
+            ctx.stroke();
         } else {
             y = this.height - 50 - this.yCellSize * (Math.abs(this.minY) / this.yIncrement);
 
-            this.ctx.beginPath();
-            this.ctx.moveTo(40, y);
-            this.ctx.lineTo(this.width - 40, y);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(40, y);
+            ctx.lineTo(this.width - 40, y);
+            ctx.stroke();
         }
+
+        c = document.createElement("canvas");
+        c.width = this.width;
+        c.height = this.height;
+        c.style = "position:absolute; ";
+        element.appendChild(c);
+        ctx = c.getContext("2d");
 
         for (const d in this.dataset) {
-            if (this.dataset[d].type === "data") {
-                switch (this.dataset[d].interpolation) {
-                    case "linear":
-                        this.dataLinearDraw(this.dataset[d]);
-                        break;
-                    case "quadratic":
-                        this.dataQuadraticDraw(this.dataset[d]);
-                        break;
-                    case "cubic":
-                        this.dataCubicDraw(this.dataset[d]);
-                        break;
+            try {
+                if (this.dataset[d].type === "data") {
+                    this.dataDraw(this.dataset[d], ctx);
+                } else if (this.dataset[d].type === "function") {
+                    this.functionDraw(this.dataset[d], ctx);
+                } else if (this.dataset[d].type === "parametric_function") {
+                    this.parametricFunctionDraw(this.dataset[d], ctx);
+                } else if (this.dataset[d].type === "custom") {
+                    this.dataset[d].fun(ctx, this.dataset[d], this);
                 }
-
-            } else if (this.dataset[d].type === "function") {
-                this.functionDraw(this.dataset[d]);
-            } else if (this.dataset[d].type === "parametric_function") {
-                this.parametricFunctionDraw(this.dataset[d]);
+            } catch (e) {
+                console.log(`There was an error loading dataset entry #${d} of type ${this.dataset[d].type}.\n` + e);
             }
         }
+
+        ctx.clearRect(0, 0, this.width, 40);
+        ctx.clearRect(0, 0, 50, this.height);
+        ctx.clearRect(this.width - 40, 40, 40, this.height - 40);
+        ctx.clearRect(40, this.height - 40, this.width - 40, 40);
     }
 
     getXPosition(x) {
@@ -163,33 +192,49 @@ class Graph {
         return this.height - 50 - this.yCellSize / this.yIncrement * (Math.abs(this.minY) + y);
     }
 
-    dataLinearDraw(data) {
-        this.ctx.strokeStyle = data.color;
-        this.ctx.lineWidth = 2;
+    dataDraw(data, ctx) {
+        ctx.strokeStyle = data.color;
+        ctx.lineWidth = 2;
 
         for (let i = 0; i < data.x.length; i++) {
-            this.ctx.beginPath();
-            this.ctx.arc(this.getXPosition(data.x[i]), this.getYPosition(data.y[i]), 5, 0, 2 * Math.PI);
-            this.ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(this.getXPosition(data.x[i]), this.getYPosition(data.y[i]), 5, 0, 2 * Math.PI);
+            ctx.stroke();
         }
 
-        this.ctx.beginPath();
+        switch (data.interpolation) {
+            case "none":
+                break;
+            case "linear":
+                this.dataLinearDraw(data, ctx);
+                break;
+            case "quadratic":
+                this.dataQuadraticDraw(data, ctx);
+                break;
+            case "cubic":
+                this.dataCubicDraw(data, ctx);
+                break;
+            case "polynomial":
+                this.dataPolynomialDraw(data, ctx);
+                break;
+        }
+    }
+
+    dataLinearDraw(data, ctx) {
+        ctx.beginPath();
 
         let x = this.getXPosition(data.x[0]);
         let y = this.getYPosition(data.y[0]);
-        this.ctx.moveTo(x, y);
+        ctx.moveTo(x, y);
         for (let i = 1; i < data.x.length; i++) {
             x = this.getXPosition(data.x[i]);
             y = this.getYPosition(data.y[i]);
-            this.ctx.lineTo(x, y);
+            ctx.lineTo(x, y);
         }
-        this.ctx.stroke();
+        ctx.stroke();
     }
 
-    dataQuadraticDraw(data) {
-        this.ctx.strokeStyle = data.color;
-        this.ctx.lineWidth = 2;
-
+    dataQuadraticDraw(data, ctx) {
         for (let i = 0; i < data.x.length - 2; i++) {
             let x0 = data.x[i], x1 = data.x[i + 1], x2 = data.x[i + 2];
             let y0 = data.y[i], y1 = data.y[i + 1], y2 = data.y[i + 2];
@@ -212,25 +257,11 @@ class Graph {
                 color: data.color,
             });
 
-            this.functionDraw(newData);
+            this.functionDraw(newData, ctx);
         }
     }
 
-    dataCubicDraw(data) {
-        if (data.x.length === 2) {
-            this.dataLinearDraw(data);
-            return;
-        }
-
-        this.ctx.strokeStyle = data.color;
-        this.ctx.lineWidth = 2;
-
-        for (let i = 0; i < data.x.length; i++) {
-            this.ctx.beginPath();
-            this.ctx.arc(this.getXPosition(data.x[i]), this.getYPosition(data.y[i]), 5, 0, 2 * Math.PI);
-            this.ctx.stroke();
-        }
-
+    dataCubicDraw(data, ctx) {
         let n = data.x.length - 1;
         let matrix = new Matrix(4 * n, 4 * n);
         let scalar = new Matrix(4 * n, 1);
@@ -251,13 +282,13 @@ class Graph {
             let x = data.x[i];
             let a = 3 * x * x, b = 2 * x;
             let values = new Matrix(1, matrix.columns);
-            values.set(0, (i-1)*4, a);
-            values.set(0, (i-1)*4+1, b);
-            values.set(0, (i-1)*4+2, 1);
+            values.set(0, (i - 1) * 4, a);
+            values.set(0, (i - 1) * 4 + 1, b);
+            values.set(0, (i - 1) * 4 + 2, 1);
 
-            values.set(0, (i)*4, -a);
-            values.set(0, (i)*4+1, -b);
-            values.set(0, (i)*4+2, -1);
+            values.set(0, (i) * 4, -a);
+            values.set(0, (i) * 4 + 1, -b);
+            values.set(0, (i) * 4 + 2, -1);
             matrix.setRow(i + 2 * n - 1, values);
         }
 
@@ -265,18 +296,18 @@ class Graph {
             let x = data.x[i];
             let a = 6 * x;
             let values = new Matrix(1, matrix.columns);
-            values.set(0, (i-1)*4, a);
-            values.set(0, (i-1)*4+1, 2);
+            values.set(0, (i - 1) * 4, a);
+            values.set(0, (i - 1) * 4 + 1, 2);
 
-            values.set(0, (i)*4, -a);
-            values.set(0, (i)*4+1, -2);
+            values.set(0, (i) * 4, -a);
+            values.set(0, (i) * 4 + 1, -2);
             matrix.setRow(i + (2 * n + n - 1) - 1, values);
         }
 
-        matrix.set(4*n-2, 0, 6 * data.x[0]);
-        matrix.set(4*n-2, 1, 2);
-        matrix.set(4*n-1, 4*n-4, 6 * data.x[data.x.length - 1]);
-        matrix.set(4*n-1, 4*n-3, 2);
+        matrix.set(4 * n - 2, 0, 6 * data.x[0]);
+        matrix.set(4 * n - 2, 1, 2);
+        matrix.set(4 * n - 1, 4 * n - 4, 6 * data.x[data.x.length - 1]);
+        matrix.set(4 * n - 1, 4 * n - 3, 2);
 
         let gaussian = augmentMatrices(matrix, scalar);
         gaussian.print();
@@ -285,12 +316,12 @@ class Graph {
         variables.print();
 
         for (let i = 0; i < variables.rows / 4; i++) {
-            let a = variables.get(4*i, 0),
-                b = variables.get(4*i+1, 0),
-                c = variables.get(4*i+2, 0),
-                d = variables.get(4*i+3, 0),
+            let a = variables.get(4 * i, 0),
+                b = variables.get(4 * i + 1, 0),
+                c = variables.get(4 * i + 2, 0),
+                d = variables.get(4 * i + 3, 0),
                 x0 = data.x[i],
-                x1 = data.x[i+1];
+                x1 = data.x[i + 1];
 
             let newData = new Data({
                 type: "function",
@@ -302,61 +333,94 @@ class Graph {
                 color: data.color,
             });
 
-            this.functionDraw(newData);
+            this.functionDraw(newData, ctx);
         }
     }
 
-    functionDraw(data) {
-        this.ctx.strokeStyle = data.color;
-        this.ctx.lineWidth = 2;
+    dataPolynomialDraw(data, ctx) {
+        let n = data.x.length;
+        let weights = [];
+        for (let j = 0; j < n; j++) {
+            let product = 1;
+            for (let m = 0; m < n; m++) {
+                if (j === m)
+                    continue;
+                product *= 1 / (data.x[j] - data.x[m]);
+            }
+            weights.push(product);
+        }
+
+
+        let newData = new Data({
+            type: "function",
+            fun: function (x) {
+                let sum1 = 0, sum2 = 0;
+                for (let i = 0; i < n; i++) {
+                    sum1 += (weights[i] * data.y[i]) / (x - data.x[i]);
+                    sum2 += weights[i] / (x - data.x[i]);
+                }
+                return sum1 / sum2;
+            },
+            domainBottom: data.x[0],
+            domainTop: data.x[n - 1],
+            color: data.color,
+        });
+
+        this.functionDraw(newData, ctx);
+    }
+
+    functionDraw(data, ctx) {
+        ctx.strokeStyle = data.color;
+        ctx.lineWidth = 2;
 
         let minX = Math.max(this.minX, data.domainBottom);
         let maxX = Math.min(this.maxX, data.domainTop);
 
         const d = 0.01;
-        this.ctx.beginPath();
+        ctx.beginPath();
         let y = data.fun(minX);
-        this.ctx.moveTo(this.getXPosition(minX), this.getYPosition(y));
+        ctx.moveTo(this.getXPosition(minX), this.getYPosition(y));
         for (let x = minX; x < maxX; x += d) {
             y = data.fun(x);
+            ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
             if (y <= this.maxY && y >= this.minY) {
-                this.ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
+
             } else {
-                this.ctx.stroke();
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
             }
         }
-        this.ctx.stroke();
+        ctx.stroke();
     }
 
-    parametricFunctionDraw(data) {
-        this.ctx.strokeStyle = data.color;
-        this.ctx.lineWidth = 2;
+    parametricFunctionDraw(data, ctx) {
+        ctx.strokeStyle = data.color;
+        ctx.lineWidth = 2;
 
         let minX = Math.max(this.minX, data.domainBottom);
         let maxX = Math.min(this.maxX, data.domainTop);
 
         const d = data.parameterIncrement;
-        this.ctx.beginPath();
+        ctx.beginPath();
 
         let x = data.x_fun(data.parameterMin);
         let y = data.y_fun(data.parameterMin);
-        this.ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+        ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
         for (let t = data.parameterMin; t < data.parameterMax; t += d) {
             x = data.x_fun(t);
             y = data.y_fun(t);
 
             if (y <= this.maxY && y >= this.minY && x <= maxX && x >= minX) {
-                this.ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
+                ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
             } else {
-                this.ctx.stroke();
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
             }
         }
 
-        this.ctx.stroke();
+        ctx.stroke();
     }
 }
 
@@ -385,6 +449,9 @@ class Data {
             this.tryAssign(obj, ["x_fun", "y_fun", "parameterMin", "parameterMax"]);
             this.defaultAssign(obj, defaults, ["domainBottom", "domainTop", "parameterIncrement"]);
         }
+        if (this.type === "custom") {
+            this.tryAssign(obj, ["fun"]);
+        }
     }
 
     tryAssign(obj, parameters) {
@@ -411,17 +478,24 @@ class Data {
     }
 }
 
-new Graph("main", window.innerWidth - 64 - 17, window.innerHeight - 6, {
-    xIncrement: 1,
-    yIncrement: 1,
-    maxX: 16,
-    maxY: 16,
-    minX: -16,
-    minY: -16,
+let inputs = document.getElementsByTagName("input");
+for (const e in inputs) {
+    inputs[e].onchange = function () {
+        onSettingsChange(-1)
+    };
+}
+
+const graph = new Graph("main", window.innerWidth - 64 - 17, window.innerHeight - 6, {
+    xIncrement: 2,
+    yIncrement: 2,
+    maxX: 14,
+    maxY: 14,
+    minX: -14,
+    minY: -14,
     dataset: [
         {
             type: "data",
-            interpolation: "cubic",
+            interpolation: "polynomial",
             x: [1, 3, 5, 8],
             y: [2, 3, 9, 10],
             color: "#0090de"
@@ -456,28 +530,197 @@ new Graph("main", window.innerWidth - 64 - 17, window.innerHeight - 6, {
     ]
 });
 
-/*
-let m1 = createMatrix(
-    [
-        [2, 1, 3],
-        [15, 2, 0],
-        [1, 3, 1]
-    ]
-);
-let m2 = createMatrix(
-    [
-        [10],
-        [5],
-        [3]
-    ]
-);
+const dataDefault = new Data({
+    type: "data",
+    color: "#0090de",
+    interpolation: "polynomial",
+    x: [1, 3, 5, 8],
+    y: [2, 3, 9, 10],
+});
+const functionDefault = new Data({
+    type: "function",
+    color: "#0090de",
+    fun: function (x) {
+        return Math.pow(Math.E, x);
+    },
+});
+const parametricFunctionDefault = new Data({
+    type: "parametric_function",
+    color: "#0090de",
+    x_fun: function (t) {
+        return Math.cos(t);
+    },
+    y_fun: function (t) {
+        return Math.sin(t);
+    },
+    parameterMin: 0,
+    parameterMax: 2 * Math.PI,
+});
+const customDefault = new Data({
+    type: "custom",
+    color: "#0090de",
+    fun: function (ctx, data, graph) {
 
-m1.print();
-m2.print();
+    }
+});
 
-let m = augmentMatrices(m1, m2);
-m.print();
 
-let vars = m.gaussianElimination();
-m.print();
-vars.print();*/
+addData(dataDefault);
+addData(functionDefault);
+
+function addData(data) {
+    let s = document.getElementById("datasets");
+    let dataIndex = s.children.length;
+
+    let f = document.createElement("div");
+    f.className = "function";
+
+    f.innerHTML += "<span class='math'>f</span> <code>type</code>: ";
+
+    createSelection(f, dataIndex, [
+        ["data", "Discrete Points"],
+        ["function", "Function"],
+        ["parametric_function", "Parametric Function"],
+        ["custom", "Custom JS Script"],
+    ], data.type, "Type");
+
+    f.innerHTML += ` <code>color</code>: <input type='color' value="${data.color}" onchange="onSettingsChange(${data},${dataIndex})">`;
+
+    fillDataType(data, f, dataIndex);
+
+    s.appendChild(f);
+}
+
+function fillDataType(data, f, dataIndex) {
+    if (data.type === "data") {
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> Interpolation is the mathematical method of creating a function that connects discrete points. </span></div>";
+        f.innerHTML += "<code>interpolation</code><span>: </span>";
+
+        createSelection(f, dataIndex, [
+            ["none", "No Interpolation"],
+            ["linear", "Linear"],
+            ["quadratic", "Quadratic with Gaussian Elimination W.I.P."],
+            ["cubic", "Cubic with Gaussian Elimination"],
+            ["polynomial", "Lagrange Polynomial"],
+        ], data.interpolation, "Interpolation");
+
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The collection of data points as x and y values (one on each line). e.g. 3 -2 </span></div>";
+        f.innerHTML += "<span>Data Points:</span> <br>";
+
+        let coords = document.createElement("textarea");
+        coords.cols = 10;
+        coords.rows = 10;
+        coords.onchange = function () {
+            onSettingsChange(dataIndex)
+        };
+        for (let i = 0; i < data.x.length; i++) {
+            coords.value += data.x[i] + " " + data.y[i];
+            if (i !== data.x.length - 1)
+                coords.value += "\r\n";
+        }
+        f.appendChild(coords);
+
+        f.appendChild(document.createElement("br"));
+    } else if (data.type === "function") {
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The equation in y=f(x) that will be displayed </span></div>";
+        f.innerHTML += `<code>fun</code><span>: y = </span> <input type='text' value='' onchange="onSettingsChange(${dataIndex})">`; //TODO: Symbolic Calculator
+
+        f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The domain of the function. </span></div>";
+        f.innerHTML += `<span>Domain: </span> <input type='text' value='(${data.domainBottom},${data.domainTop})' onchange="onSettingsChange(${dataIndex})"> <span>`; //TODO: Domain Parser
+    } else if (data.type === "parametric_function") {
+
+    }
+}
+
+function createSelection(f, index, map, def, title) {
+    let typesSelect = document.createElement("select");
+    typesSelect.title = title;
+    typesSelect.setAttribute("onchange", `onSettingsChange(${index})`);
+    let types = new Map(map);
+
+    types.forEach((v, k) => {
+        let o = document.createElement("option");
+        o.value = k;
+        o.innerText = v;
+        if (k === def)
+            o.setAttribute("selected", "selected");
+        typesSelect.appendChild(o);
+
+    });
+    f.appendChild(typesSelect);
+}
+
+async function onSettingsChange(dataIndex) {
+
+    if (dataIndex === -1) {
+        graph.xIncrement = Number.parseInt(document.getElementById("xIncrement").value);
+        graph.yIncrement = Number.parseInt(document.getElementById("yIncrement").value);
+        graph.maxX = Number.parseInt(document.getElementById("maxX").value);
+        graph.maxY = Number.parseInt(document.getElementById("maxY").value);
+        graph.minX = Number.parseInt(document.getElementById("minX").value);
+        graph.minY = Number.parseInt(document.getElementById("minY").value);
+    } else {
+        let datasets = document.getElementById("datasets");
+        let d = datasets.children[dataIndex];
+        let g = graph.dataset[dataIndex];
+        let newData = {};
+
+        g.type = d.children[2].value;
+        g.color = d.children[4].value;
+
+        if (g.type === "data") {
+            try {
+                g.interpolation = d.children[9].value;
+                let xy = d.children[14].value;
+                xy = xy.replaceAll('\n', ' ');
+                let decoded = await decodeCoordinates(xy);
+                if (decoded === "error" || decoded[0].length !== decoded[1].length) {
+                    return;
+                }
+
+                g.x = decoded[0];
+                g.y = decoded[1];
+            } catch (e) {
+                fillDataType(dataDefault, d, dataIndex);
+            }
+        }
+
+        for (let i = d.children.length - 1; i >= 5; i--) {
+            d.removeChild(d.children[i]);
+        }
+
+        fillDataType(g, d, dataIndex);
+    }
+
+    graph.redraw();
+}
+
+function decodeCoordinates(xy) {
+    return new Promise((resolve => {
+        setTimeout(() => {
+            resolve("error");
+        }, 20)
+
+        let x = [], y = [];
+
+        while (xy.length > 0) {
+            let temp = '', num = '', i = 0;
+            while (temp !== ' ' && temp !== undefined) {
+                num += xy[i];
+                i++;
+                temp = xy[i];
+            }
+
+
+            if (x.length === y.length)
+                x.push(Number.parseFloat(num));
+            else
+                y.push(Number.parseFloat(num));
+
+            xy = xy.substr(i + 1);
+            i = 0;
+        }
+
+        resolve([x, y]);
+    }));
+}

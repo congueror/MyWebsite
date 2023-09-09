@@ -5,6 +5,110 @@
     <title>Graphing Calculator</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="../icons/favicon.ico">
+
+    <style>
+        code {
+            color: #626161;
+            font-size: 18px;
+            text-decoration-line: underline;
+            text-decoration-style: dotted;
+        }
+
+        .settings {
+            position: relative;
+            background-color: #ffffff;
+            border: 3px solid #ad6c6c;
+            border-radius: 0;
+            max-width: calc(100% - 7%);
+
+            left: 64px;
+            padding-left: 20px;
+
+            font-size: 20px;
+        }
+
+        .information {
+            position: relative;
+            background-color: #2400ff;
+            border: 1px solid #1f2025;
+            border-radius: 50%;
+            width: 17px;
+
+            text-align: center;
+            color: white;
+            font-size: 18px;
+
+            float: left;
+        }
+
+        .information .tooltip {
+            visibility: hidden;
+            background-color: #555;
+            color: #fff;
+            padding: 5px 0;
+            border-radius: 6px;
+
+            position: absolute;
+            z-index: 1001;
+            bottom: 130%;
+            left: 175%;
+            margin-left: -60px;
+
+            opacity: 0;
+            transition: opacity 0.3s;
+
+            white-space: nowrap;
+        }
+
+        .information .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .information:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #datasets {
+            position: relative;
+            background-color: #e8e8e8;
+            border: 3px solid #835353;
+            border-radius: 10px;
+            max-width: calc(100% - 10%);
+
+            margin-bottom: 1%;
+
+            font-size: 20px;
+        }
+
+        .function {
+            position: relative;
+            background-color: #ffffff;
+            border: 3px solid #f59393;
+            border-radius: 10px;
+            max-width: calc(100% - 10%);
+
+            margin-bottom: 1%;
+            margin-left: 1%;
+            margin-top: 1%;
+
+            font-size: 20px;
+        }
+
+        .math {
+            position: relative;
+            font-family: "Vivaldi";
+            font-size: 40px;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 
 <script src="../main.js"></script>
@@ -13,6 +117,47 @@
 
 <div class="menu_bar">
     <button class="menu_button" role="button" onclick="redirect('')"></button>
+</div>
+
+<div class="settings">
+    <h4>Graphing Calculator Settings:</h4>
+    <div class="information">?<span class="tooltip">
+            The scale of which the shown x values will be incremented by.
+    </span></div>
+    Increments of x (<code>xIncrement</code>): <input type="text" id="xIncrement" value="2"> <br>
+
+    <div class="information">?<span class="tooltip">
+            The scale of which the shown y values will be incremented by.
+    </span></div>
+    Increments of y (<code>yIncrement</code>): <input type="text" id="yIncrement" value="2"> <br>
+
+    <div class="information">?<span class="tooltip">
+            The maximum x value that will be shown on the graph.
+    </span></div>
+    Maximum x value (<code>maxX</code>): <input type="text" id="maxX" value="14"> <br>
+
+    <div class="information">?<span class="tooltip">
+            The maximum y value that will be shown on the graph.
+    </span></div>
+    Maximum y value (<code>maxY</code>): <input type="text" id="maxY" value="14"> <br>
+
+    <div class="information">?<span class="tooltip">
+            The minimum x value that will be shown on the graph.
+    </span></div>
+    Minimum x value (<code>minX</code>): <input type="text" id="minX" value="-14"> <br>
+
+    <div class="information">?<span class="tooltip">
+            The minimum y value that will be shown on the graph.
+    </span></div>
+    Minimum y value (<code>minY</code>): <input type="text" id="minY" value="-14"> <br>
+
+    <div class="information">?<span class="tooltip">
+            A collection of datasets(or functions) that will be shown on the graph.
+    </span></div>
+    Datasets and Functions (<code>datasets</code>): <br>
+
+    <div id="datasets">
+    </div>
 </div>
 
 <div id="main"></div>
