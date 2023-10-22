@@ -5,11 +5,13 @@
     <title>Pendulum</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="../icons/favicon.ico">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
     <style>
+
         #period_length {
-            float: left;
-            border-right: 2px solid #FFDE06;
+            /*border-right: 2px solid #FFDE06;*/
         }
 
         #period_gravity {
@@ -33,22 +35,30 @@
 
 <div class="manip_box" style="top: 110px">
     Pendulum Settings <br>
-    Length: <input id="length_input" type="text"><br>
-    Angle: <input id="angle_input" type="text"><br>
-    Gravity: <input id="gravity_input" type="text"><br>
-    Mass: <input id="mass_input" type="text" value="10"><br>
+    Length (\(cm\)): <input id="length_input" type="text"><br>
+    Angle (\( ^\circ \)): <input id="angle_input" type="text"><br>
+    Gravity (\( \frac{m}{s^2} \)): <input id="gravity_input" type="text"><br>
+    Mass (\(kg\)): <input id="mass_input" type="text" value="10"><br>
     Draw Force Vectors: <input id="draw_input" type="checkbox"><br>
     Analyze Force Vectors: <input id="analyze_input" type="checkbox"><br>
     <button class="reset_button" role="button" onclick="reset()">Reset</button>
 </div>
 
-<canvas id="period_length"></canvas>
-<canvas id="period_angle"></canvas>
-<canvas id="period_gravity"></canvas>
-<canvas id="period_mass"></canvas>
+<div id="period_length" style="display: inline-block; box-sizing: border-box; position: relative; left: 64px; float: left"></div>
+<div id="period_angle" style="display: inline-block; box-sizing: border-box; position: relative; left: 64px"></div>
+<div id="period_gravity" style="display: inline-block; box-sizing: border-box; position: relative; left: 64px; float: left"></div>
+<div id="period_mass" style="display: inline-block; box-sizing: border-box; position: relative; left: 64px"></div>
+
+<!--
+<canvas id="period_length" class="old_canvas"></canvas>
+<canvas id="period_angle" class="old_canvas"></canvas>
+<canvas id="period_gravity" class="old_canvas"></canvas>
+<canvas id="period_mass" class="old_canvas"></canvas>
+-->
 
 </body>
 <script src="../Common/MathLib.js"></script>
+<script src="../Common/GraphLib.js"></script>
 <script src="common/mathHelper.js"></script>
 <script src="pendulum.js"></script>
 

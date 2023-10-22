@@ -22,7 +22,7 @@ class Pendulum {
             this.pendulum.append(length, angle);
     }
 
-    f(theta) {
+    angularAcceleration(theta) {
         return -(this.gravity / (this.length / 100)) * Math.sin(theta);
     }
 
@@ -45,14 +45,15 @@ class Pendulum {
         return a * series;
     }
 
-    move(dt) {
+    move(dt) {//TODO: Pre-calculation of movement.
         let dTheta;
         let newAngularVelocity;
 
-        let a = this.f(this.angle);
-        let b = this.f(this.angle + (dt / 2) * a) * 2;
-        let c = this.f(this.angle + (dt / 2) * b) * 2;
-        let d = this.f(this.angle + dt * c);
+        //Runge-Kutta Method
+        let a = this.angularAcceleration(this.angle);
+        let b = this.angularAcceleration(this.angle + (dt / 2) * a) * 2;
+        let c = this.angularAcceleration(this.angle + (dt / 2) * b) * 2;
+        let d = this.angularAcceleration(this.angle + dt * c);
         newAngularVelocity = this.angularVelocity + (dt / 6) * (a + b + c + d);
 
         dTheta = newAngularVelocity * dt;
@@ -94,17 +95,17 @@ class Pendulum {
 
         let vectorSize = 200;
         if (this.drawForceVectors) {
-            drawVector("T", this.x, this.y + this.length + 20, 0, -vectorSize * Math.cos(this.angle), "#ffdc00");
+            drawVector(ctx, "T", this.x, this.y + this.length + 20, 0, -vectorSize * Math.cos(this.angle), "#ffdc00");
 
             if (this.analyzeVectors) {
-                drawVector("Bε", this.x, this.y + this.length + 20, -vectorSize * Math.sin(this.angle), 0, "#22ff00");
-                drawVector("Bκ", this.x, this.y + this.length + 20, 0, vectorSize * Math.cos(this.angle), "#22ff00");
+                drawVector(ctx, "Bε", this.x, this.y + this.length + 20, -vectorSize * Math.sin(this.angle), 0, "#22ff00");
+                drawVector(ctx, "Bκ", this.x, this.y + this.length + 20, 0, vectorSize * Math.cos(this.angle), "#22ff00");
             }
 
             ctx.translate(this.x, this.y + this.length + 20);
             ctx.rotate(this.angle);
             ctx.translate(-this.x, -(this.y + this.length + 20));
-            drawVector("B", this.x, this.y + this.length + 20, 0, vectorSize, "#ffdc00");
+            drawVector(ctx, "B", this.x, this.y + this.length + 20, 0, vectorSize, "#ffdc00");
         }
 
         ctx.resetTransform();
@@ -126,6 +127,7 @@ c.width = window.innerWidth - 64 - 17;
 c.height = window.innerHeight;
 let ctx = c.getContext("2d");
 
+/*
 {
     let T_l = document.getElementById("period_length");
     T_l.width = c.width / 2;
@@ -143,6 +145,7 @@ let ctx = c.getContext("2d");
     T_m.width = c.width / 2;
     T_m.height = c.height / 2;
 }
+*/
 
 let length = document.getElementById("length_input");
 length.value = "200";
@@ -174,8 +177,8 @@ let chartLength = null,
     chartGravity = null,
     chartMass = null;
 
-Chart.defaults.borderColor = '#676767';
-Chart.defaults.color = "#E6E6FAFF";
+//Chart.defaults.borderColor = '#676767';
+//Chart.defaults.color = "#E6E6FAFF";
 
 reset();
 
@@ -203,6 +206,13 @@ function reset() {
 
     intervalId = setInterval(draw, 10);
 
+    window.addEventListener("message", event => {
+        let fn = window[event.data.graph];
+        if (typeof fn === 'function') {
+            fn(event.data.xValues, event.data.expYValues, event.data.thYValues, event.data.errorYValues);
+        }
+    });
+
     period_length_graph();
     period_angle_graph();
     period_gravity_graph();
@@ -217,7 +227,8 @@ function draw() {
     if (prevAngle === null)
         prevAngle = p1.angle;
 
-    p1.move(dt);
+    for (let i = 0; i < 100; i++)
+        p1.move(dt / 100);
 
     steps++;
     time = steps * dt;
@@ -247,8 +258,6 @@ function draw() {
 
     p1.draw();
     ctx.save();
-
-
 }
 
 function createChart(id, xValues, theoretical, experimental, error, title, subtitle) {
@@ -304,16 +313,53 @@ function createChart(id, xValues, theoretical, experimental, error, title, subti
     });
 }
 
+function createGraph(id, xValues, theoretical, experimental, error, title) {
+    return new Graph(id, c.width / 2, c.height / 2, {
+        axes: "symmetric",
+        title: title,
+        dataset: [
+            {
+                type: "data",
+                color: "#0090de",
+                interpolation: "cubic",
+                cubicType: "clamped",
+                x: [...xValues],
+                y: theoretical,
+            },
+            {
+                type: "data",
+                color: "#de0000",
+                interpolation: "cubic",
+                cubicType: "clamped",
+                x: [...xValues],
+                y: experimental,
+            },
+            {
+                type: "data",
+                color: "#4ade00",
+                interpolation: "cubic",
+                cubicType: "clamped",
+                x: [...xValues],
+                y: error,
+            }
+        ]
+    });
+}
+
 function calculateChartValues(pendulum, thPeriods, expPeriods, errors) {
     let T = pendulum.calculatePeriod();
     thPeriods.push(T);
+
 
     let steps = 1, oscillations = 0, time, prevAngle = null, prevChange = 0, expPeriod = 0;
     do {
         if (prevAngle === null)
             prevAngle = pendulum.angle;
 
-        pendulum.move(dt);
+        let dt = 0.01;
+
+        for (let i = 0; i < 100; i++)
+            pendulum.move(dt / 100);
 
         steps++;
 
@@ -327,7 +373,7 @@ function calculateChartValues(pendulum, thPeriods, expPeriods, errors) {
         prevAngle = pendulum.angle;
         prevChange = change;
 
-    } while (oscillations < 50);
+    } while (oscillations < 10);
 
     expPeriods.push(expPeriod);
 
@@ -336,13 +382,11 @@ function calculateChartValues(pendulum, thPeriods, expPeriods, errors) {
 }
 
 function period_length_graph() {
-    if (chartLength !== null)
-        chartLength.destroy();
-
     const xValues = [];
     const expYValues = [];
     const thYValues = [];
     const errorYValues = [];
+
     for (let i = 1; i < 10; i++) {
         xValues.push(i * 50);
 
@@ -350,15 +394,21 @@ function period_length_graph() {
         calculateChartValues(pendulum, thYValues, expYValues, errorYValues);
     }
 
-    chartLength = createChart("period_length", xValues, thYValues, expYValues, errorYValues,
-        `Period/Length Graph with Percentage Error at 50 oscillations and θ=${angle.value}° | g=${g.value}m/s^2`,
-        'T=f(l)');
+    if (chartLength !== null) {
+        chartLength.dataset[0].x = xValues;
+        chartLength.dataset[0].y = thYValues;
+        chartLength.dataset[1].x = xValues;
+        chartLength.dataset[1].y = expYValues;
+        chartLength.dataset[2].x = xValues;
+        chartLength.dataset[2].y = errorYValues;
+        chartLength.redraw();
+    } else {
+        chartLength = createGraph("period_length", xValues, thYValues, expYValues, errorYValues,
+            `$$\\color{#D3D3D3FF} T=f(l):\\ Period/Length\\ Graph\\ with\\ \\theta = ${angle.value}^\\circ,\\ g= ${g.value}\\frac{m}{s^2}$$`);
+    }
 }
 
 function period_angle_graph() {
-    if (chartAngle !== null)
-        chartAngle.destroy();
-
     const xValues = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180];
     const expYValues = [0];
     const thYValues = [0];
@@ -372,15 +422,21 @@ function period_angle_graph() {
     thYValues.push(0);
     errorYValues.push(0);
 
-    chartAngle = createChart("period_angle", xValues, thYValues, expYValues, errorYValues,
-        `Period/Angle Graph with Percentage Error at 50 oscillations and L=${length.value}u | g=${g.value}m/s^2`,
-        'T=f(θ)');
+    if (chartAngle !== null) {
+        chartAngle.dataset[0].x = xValues;
+        chartAngle.dataset[0].y = thYValues;
+        chartAngle.dataset[1].x = xValues;
+        chartAngle.dataset[1].y = expYValues;
+        chartAngle.dataset[2].x = xValues;
+        chartAngle.dataset[2].y = errorYValues;
+        chartAngle.redraw();
+    } else {
+        chartAngle = createGraph("period_angle", xValues, thYValues, expYValues, errorYValues,
+            `$$\\color{#D3D3D3FF} T=f(\\theta):\\ Period/Angle\\ Graph\\ with\\ L=${length.value}cm,\\ g=${g.value}\\frac{m}{s^2}$$`);
+    }
 }
 
 function period_gravity_graph() {
-    if (chartGravity !== null)
-        chartGravity.destroy();
-
     const xValues = [0, 0.66, 1.62, 3.7, 8.87, GRAVITY, 10.44, 24.79, 274.20];
     const expYValues = [0];
     const thYValues = [0];
@@ -390,15 +446,21 @@ function period_gravity_graph() {
         calculateChartValues(pendulum, thYValues, expYValues, errorYValues);
     }
 
-    chartGravity = createChart("period_gravity", xValues, thYValues, expYValues, errorYValues,
-        `Period/Gravity Graph with Percentage Error at 50 oscillations and L=${length.value}u | θ=${angle.value}°`,
-        'T=f(g)');
+    if (chartGravity !== null) {
+        chartGravity.dataset[0].x = xValues;
+        chartGravity.dataset[0].y = thYValues;
+        chartGravity.dataset[1].x = xValues;
+        chartGravity.dataset[1].y = expYValues;
+        chartGravity.dataset[2].x = xValues;
+        chartGravity.dataset[2].y = errorYValues;
+        chartGravity.redraw();
+    } else {
+        chartGravity = createGraph("period_gravity", xValues, thYValues, expYValues, errorYValues,
+            `$$\\color{#D3D3D3FF} T=f(g):\\ Period/Gravity\\ Graph\\ with\\ L=${length.value}cm,\\ θ=${angle.value}^\\circ $$`);
+    }
 }
 
 function period_mass_graph() {
-    if (chartMass !== null)
-        chartMass.destroy();
-
     const xValues = [0];
     const expYValues = [];
     const thYValues = [];
@@ -414,7 +476,16 @@ function period_mass_graph() {
         errorYValues.push(errorYValues[0]);
     }
 
-    chartMass = createChart("period_mass", xValues, thYValues, expYValues, errorYValues,
-        `Period/Mass Graph with Percentage Error at 50 oscillations and L=${length.value}u | θ=${angle.value}° | g=${g.value}m/s^2`,
-        'T=f(m)');
+    if (chartMass !== null) {
+        chartMass.dataset[0].x = xValues;
+        chartMass.dataset[0].y = thYValues;
+        chartMass.dataset[1].x = xValues;
+        chartMass.dataset[1].y = expYValues;
+        chartMass.dataset[2].x = xValues;
+        chartMass.dataset[2].y = errorYValues;
+        chartMass.redraw();
+    } else {
+        chartMass = createGraph("period_mass", xValues, thYValues, expYValues, errorYValues,
+            `$$\\color{#D3D3D3FF} T=f(m):\\ Period/Mass\\ Graph\\ with\\ L=${length.value}cm,\\ θ=${angle.value}^\\circ,\\ g=${g.value}\\frac{m}{s^2} $$`);
+    }
 }

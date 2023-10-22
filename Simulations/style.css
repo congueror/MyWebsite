@@ -21,7 +21,7 @@ canvas {
 }
 
 .manip_box {
-    z-index: 990;
+    z-index: 3;
     position: absolute;
     background-color: #d6e1fa;
     border-width: 2px;
@@ -58,7 +58,7 @@ canvas {
 }
 
 .menu_bar {
-    z-index: 1000;
+    z-index: 2;
     position: fixed;
 
     background-color: rgb(255, 215, 40);

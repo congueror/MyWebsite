@@ -1,50 +1,245 @@
 class Graph {
+    static GRAPHS = new Map();
 
-    constructor(id, width, height, obj) {
+    constructor(id, width, height, options) {
+        Graph.GRAPHS.set(id, this);
+
         this.id = id;
-        let div = document.getElementById(id);
-        div.style = `width:${width}px; height:${height}px`;
+        let div = document.getElementById(this.id);
+        div.style.width = `${width}px`;
+        div.style.height = `${height + 20}px`;
         if (!div instanceof HTMLDivElement)
-            throw `Element id of ${id} does not belong to a div element.`;
-
-        let repeat = true;
-        while (repeat) {
-            repeat = false;
-            for (const child of div.children) {
-                div.removeChild(child);
-                repeat = true;
-            }
-        }
+            throw `Element id of ${this.id} does not belong to a div element.`;
 
         this.width = width;
         this.height = height;
-        this.xIncrement = obj.xIncrement;
-        this.yIncrement = obj.yIncrement;
-        this.maxX = obj.maxX;
-        this.maxY = obj.maxY;
-        this.minX = obj.minX;
-        this.minY = obj.minY;
-
         this.dataset = [];
-        obj.dataset.forEach(value => this.dataset.push(new Data(value)));
+        if (options.dataset === undefined) {
+            throw `Graph with id ${this.id} is missing the mandatory 'dataset' field in the options object.`;
+        }
+        options.dataset.forEach(value => this.dataset.push(new Data(value)));
 
-        let xAmount = (Math.abs(this.maxX) + Math.abs(this.minX)) / this.xIncrement;
+        let infoY = height / 4;
+        div.innerHTML += `<span class="graph_info"
+                            style="float: left; top: ${infoY}px; right: 0; 
+                            border: 2px solid #ffffff; border-radius: 5px; padding: 5px;
+                            display: block; position: fixed; background-color: #835353; z-index: 3; opacity: 0"></span>`
+
+        if (options.title !== undefined) {
+            let b = document.createElement("b");
+            b.innerHTML += options.title
+            b.style.textAlign = "center";
+            for (let i = 0; i < this.dataset.length; i++) {
+                let x = width / 2 - (this.dataset.length / 2) * (30 + 10);
+                let box = document.createElement("div");
+                box.addEventListener("mouseover", (e) => {
+                    Graph.GRAPHS.get(this.id).onInfoMouseOver(box, Graph.GRAPHS.get(this.id).dataset[i].desc);
+                });
+                box.addEventListener("mouseout", (e) => {
+                    Graph.GRAPHS.get(this.id).onInfoMouseOut();
+                });
+                box.style.backgroundColor = this.dataset[i].color;
+                box.style.left = x + "px";
+                box.style.position = "relative";
+                box.style.margin = "5px";
+                box.style.border = "2px solid #ffffff";
+                box.style.display = "inline-block";
+                box.style.width = "30px";
+                box.style.height = "15px";
+                box.style.zIndex = "1";
+
+                b.appendChild(box);
+            }
+
+            div.appendChild(b);
+            div.appendChild(document.createElement("br"));
+        }
+
+        if (options.subtitle !== undefined)
+            div.innerHTML += options.subtitle;
+
+        if (options.axes === "auto" || options.axes === "symmetric") {
+            let onlyData = true, noData = true;
+
+            for (let i = 0; i < this.dataset.length; i++) {
+                if (this.dataset[i].type !== "data") {
+                    if (options.axes === "symmetric")
+                        throw `Graph with id ${this.id} declared 'symmetric' axes in options, 
+                                but 'symmetric' axes require that there only exist datasets of type 'data'. 
+                                Remove any problematic datasets or change axes to 'auto'.`
+                    onlyData = false;
+                } else
+                    noData = false;
+            }
+
+            if (noData || !onlyData) {
+                this.xIncrement = 1;
+                this.yIncrement = 1;
+                this.maxX = 10;
+                this.maxY = 10;
+                this.minX = -10;
+                this.minY = -10;
+            } else {
+                if (options.axes === "auto")
+                    this.resolveAutoAxes(options);
+                if (options.axes === "symmetric")
+                    this.resolveSymmetricAxes(options);
+            }
+
+        } else if (options.axes === "manual") {
+            this.xIncrement = options.xIncrement;
+            this.yIncrement = options.yIncrement;
+            this.maxX = options.maxX;
+            this.maxY = options.maxY;
+            this.minX = options.minX;
+            this.minY = options.minY;
+
+            if (options.xIncrement > options.maxX || options.yIncrement > options.maxY)
+                throw `Graph with id ${this.id} has an increment value that is greater than the maximum.`;
+        } else {
+            throw `Graph with id ${this.id} is missing a valid value for 'axes' option. Check your spelling or declare the field.`
+        }
+
+        let xAmount = this.getXAmount();
         this.xCellSize = ((width - 40 - 50) / (xAmount));
-        let yAmount = (Math.abs(this.maxY) + Math.abs(this.minY)) / this.yIncrement;
+        let yAmount = this.getYAmount();
         this.yCellSize = ((height - 50 - 40) / (yAmount));
 
-        if (obj.xIncrement > obj.maxX || obj.yIncrement > obj.maxY)
-            throw 'Increment value cannot be greater than the maximum.';
-
         this.draw(div);
+    }
+
+    resolveAutoAxes(options) {
+        this.xIncrement = 1;
+        this.yIncrement = 1;
+
+        let maxX = Number.NEGATIVE_INFINITY, minX = Number.POSITIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY,
+            minY = Number.POSITIVE_INFINITY;
+
+        for (let i = 0; i < options.dataset.length; i++) {
+            if (options.dataset[i].type === "data") {
+                let xIncrement = 1, yIncrement = 1;
+                let sum = 0, k = 0;
+                for (let j = 0; j < options.dataset[i].x.length; j++) {
+                    if (options.dataset[i].x[j] > maxX)
+                        maxX = options.dataset[i].x[j];
+                    if (options.dataset[i].x[j] < minX)
+                        minX = options.dataset[i].x[j];
+                    if (j + 1 < options.dataset[i].x.length) {
+                        sum += options.dataset[i].x[j + 1] - options.dataset[i].x[j];
+                        k++;
+                    }
+                }
+                sum /= k;
+                xIncrement = Math.trunc(sum) + (Math.trunc(sum) - sum !== 0 ? 1 : 0);
+                if (xIncrement > this.xIncrement)
+                    this.xIncrement = xIncrement;
+                sum = 0;
+                k = 0;
+                for (let j = 0; j < options.dataset[i].y.length; j++) {
+                    if (options.dataset[i].y[j] > maxY)
+                        maxY = options.dataset[i].y[j];
+                    if (options.dataset[i].y[j] < minY)
+                        minY = options.dataset[i].y[j];
+                    if (j + 1 < options.dataset[i].y.length) {
+                        sum += options.dataset[i].y[j + 1] - options.dataset[i].y[j];
+                        k++;
+                    }
+                }
+                maxY = Math.trunc(maxY) + (maxY - Math.trunc(maxY) > 0 ? 1 : 0);
+                minY = Math.trunc(minY) + (minY - Math.trunc(minY) < 0 ? 1 : 0);
+                sum /= k;
+                yIncrement = Math.trunc(sum) + (Math.trunc(sum) - sum !== 0 ? 1 : 0);
+                if (yIncrement > this.yIncrement)
+                    this.yIncrement = yIncrement;
+
+            }
+        }
+
+        this.maxX = maxX;
+        this.maxY = maxY;
+        this.minX = minX;
+        this.minY = minY;
+    }
+
+    resolveSymmetricAxes(options) {
+        this.yIncrement = 1;
+
+        let maxY = Number.NEGATIVE_INFINITY, minY = Number.POSITIVE_INFINITY;
+        let xNums = [];
+
+        for (let i = 0; i < options.dataset.length; i++) {
+            if (options.dataset[i].type === "data") {
+                for (let j = 0; j < options.dataset[i].x.length; j++) {
+                    xNums.push(options.dataset[i].x[j]);
+                }
+
+                let yIncrement = 1;
+                let sum = 0, k = 0;
+                for (let j = 0; j < options.dataset[i].y.length; j++) {
+                    if (options.dataset[i].y[j] > maxY)
+                        maxY = options.dataset[i].y[j];
+                    if (options.dataset[i].y[j] < minY)
+                        minY = options.dataset[i].y[j];
+                    if (j + 1 < options.dataset[i].y.length) {
+                        sum += options.dataset[i].y[j + 1] - options.dataset[i].y[j];
+                        k++;
+                    }
+                }
+                maxY = Math.trunc(maxY) + (maxY - Math.trunc(maxY) > 0 ? 1 : 0);
+                minY = Math.trunc(minY) + (minY - Math.trunc(minY) < 0 ? 1 : 0);
+                sum /= k;
+                yIncrement = Math.trunc(sum) + (Math.trunc(sum) - sum !== 0 ? 1 : 0);
+                if (yIncrement > this.yIncrement)
+                    this.yIncrement = yIncrement;
+
+            }
+        }
+
+        this.xElements = [...new Set(xNums.sort((a, b) => {
+            return a - b
+        }))];
+        this.maxY = maxY;
+        this.minY = minY;
+
+        this.getXAmount = function () {
+            return this.xElements.length - 1;
+        }
+
+        this.getXPosition = function (x) {
+            return 50 + this.xCellSize * Math.abs(x);
+        }
+
+        for (let i = 0; i < this.dataset.length; i++) {
+            for (let j = 0; j < this.dataset[i].x.length; j++) {
+                this.dataset[i].x[j] = this.xElements.indexOf(this.dataset[i].x[j]);
+            }
+        }
+    }
+
+    onInfoMouseOver(element, desc) {
+        let a = document.getElementById(this.id).getElementsByClassName("graph_info")[0];
+        a.innerHTML = desc;
+
+        a.style.opacity = `1`;
+        MathJax.typeset();
+    }
+
+    onInfoMouseOut() {
+        let a = document.getElementById(this.id).getElementsByClassName("graph_info")[0];
+        a.style.opacity = '0';
     }
 
     redraw() {
         let div = document.getElementById(this.id);
+        let a = div.getElementsByClassName("graph_info")[0];
+        a.style.opacity = '0';
+        a.innerHTML = '';
         let repeat = true;
         while (repeat) {
             repeat = false;
             for (const child of div.children) {
+                if (child.tagName !== "CANVAS")
+                    continue;
                 div.removeChild(child);
                 repeat = true;
             }
@@ -53,21 +248,21 @@ class Graph {
         this.draw(div);
     }
 
-    draw(element) {
+    draw(element) {//TODO: Fix increment
         let c = document.createElement("canvas");
         c.width = this.width;
         c.height = this.height;
-        c.style = "position:absolute;";
+        c.style = "position:absolute;top:20px";
         element.appendChild(c);
         let ctx = c.getContext("2d");
 
         ctx.strokeStyle = "#676767";
         ctx.fillStyle = "#D3D3D3FF";
-        ctx.font = "20px Verdana";
+        ctx.font = "10px Verdana";
         ctx.lineWidth = 2;
 
         let baseWidth = ctx.measureText(9).width;
-        let x, t, xAmount = (Math.abs(this.maxX) + Math.abs(this.minX)) / this.xIncrement;
+        let x, t, xAmount = this.getXAmount();
         let xDec = xAmount - Math.trunc(xAmount);
         for (let i = 0; i <= xAmount; i++) {
             x = 50 + this.xCellSize * i;
@@ -77,7 +272,7 @@ class Graph {
             ctx.lineTo(x, 40);
             ctx.stroke();
 
-            t = this.minX + this.xIncrement * i;
+            t = this.minX === undefined ? this.xElements[i] : this.minX + this.xIncrement * i;
             let xWidth = ctx.measureText(t).width;
             ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
@@ -95,7 +290,7 @@ class Graph {
             ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
 
-        let y, yAmount = (Math.abs(this.maxY) + Math.abs(this.minY)) / this.yIncrement;
+        let y, yAmount = this.getYAmount();
         for (let i = 0; i <= yAmount; i++) {
             y = this.height - 50 - this.yCellSize * i;
 
@@ -127,7 +322,7 @@ class Graph {
         ctx.strokeStyle = "#000000";
         ctx.lineWidth = 2;
 
-        if (this.minX >= 0) {
+        if (this.minX === undefined || this.minX >= 0) {
             ctx.beginPath();
             ctx.moveTo(50, 40);
             ctx.lineTo(50, this.height - 40);
@@ -158,7 +353,7 @@ class Graph {
         c = document.createElement("canvas");
         c.width = this.width;
         c.height = this.height;
-        c.style = "position:absolute; ";
+        c.style = "position:absolute; top:20px";
         element.appendChild(c);
         ctx = c.getContext("2d");
 
@@ -185,22 +380,31 @@ class Graph {
     }
 
     getXPosition(x) {
-        return 50 + this.xCellSize / this.xIncrement * (Math.abs(this.minX) + x);
+        return 50 + this.xCellSize / this.xIncrement * Math.abs(x - this.minX);
     }
 
     getYPosition(y) {
-        return this.height - 50 - this.yCellSize / this.yIncrement * (Math.abs(this.minY) + y);
+        return this.height - 50 - this.yCellSize / this.yIncrement * Math.abs(y - this.minY);
+    }
+
+    getXAmount() {
+        return (this.maxX - this.minX) / this.xIncrement;
+    }
+
+    getYAmount() {
+        return (this.maxY - this.minY) / this.yIncrement;
     }
 
     dataDraw(data, ctx) {
         ctx.strokeStyle = data.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
 
         for (let i = 0; i < data.x.length; i++) {
             ctx.beginPath();
             ctx.arc(this.getXPosition(data.x[i]), this.getYPosition(data.y[i]), 5, 0, 2 * Math.PI);
             ctx.stroke();
         }
+
 
         switch (data.interpolation) {
             case "none":
@@ -265,6 +469,7 @@ class Graph {
         let matrix = new Matrix(4 * n, 4 * n);
         let scalar = new Matrix(4 * n, 1);
 
+        //Evaluate @ known points
         for (let i = 0; i < n; i++) {
             let x1 = data.x[i], y1 = data.y[i],
                 x2 = data.x[i + 1], y2 = data.y[i + 1];
@@ -277,6 +482,7 @@ class Graph {
 
         }
 
+        //Continuity of 1st derivative at interior
         for (let i = 1; i < n; i++) {
             let x = data.x[i];
             let a = 3 * x * x, b = 2 * x;
@@ -291,6 +497,7 @@ class Graph {
             matrix.setRow(i + 2 * n - 1, values);
         }
 
+        //Continuity of 2nd derivative at interior
         for (let i = 1; i < n; i++) {
             let x = data.x[i];
             let a = 6 * x;
@@ -303,16 +510,29 @@ class Graph {
             matrix.setRow(i + (2 * n + n - 1) - 1, values);
         }
 
-        matrix.set(4 * n - 2, 0, 6 * data.x[0]);
-        matrix.set(4 * n - 2, 1, 2);
-        matrix.set(4 * n - 1, 4 * n - 4, 6 * data.x[data.x.length - 1]);
-        matrix.set(4 * n - 1, 4 * n - 3, 2);
+        if (data.cubicType === "natural") {
+            //Natural cubic assumption: P''(x) = 0 at exterior
+            matrix.set(4 * n - 2, 0, 6 * data.x[0]);
+            matrix.set(4 * n - 2, 1, 2);
+            matrix.set(4 * n - 1, 4 * n - 4, 6 * data.x[data.x.length - 1]);
+            matrix.set(4 * n - 1, 4 * n - 3, 2);
+        } else if (data.cubicType === "clamped") {
+            //Clamped cubic assumption: P'(x) = a at exterior.
+            let a = 0;
+            let x = data.x[0];
+            matrix.set(4 * n - 2, 0, 3 * x * x);
+            matrix.set(4 * n - 2, 1, 2 * x);
+            matrix.set(4 * n - 2, 2, 1);
+            //scalar.set(4 * n - 2, 0, a);
+            x = data.x[data.x.length - 1];
+            matrix.set(4 * n - 1, 4 * n - 4, 3 * x * x);
+            matrix.set(4 * n - 1, 4 * n - 3, 2 * x);
+            matrix.set(4 * n - 1, 4 * n - 2, 1);
+            //scalar.set(4 * n - 1, 0, a);
+        }
 
         let gaussian = augmentMatrices(matrix, scalar);
-        gaussian.print();
         let variables = gaussian.gaussianElimination();
-        gaussian.print();
-        variables.print();
 
         for (let i = 0; i < variables.rows / 4; i++) {
             let a = variables.get(4 * i, 0),
@@ -354,6 +574,9 @@ class Graph {
             fun: function (x) {
                 let sum1 = 0, sum2 = 0;
                 for (let i = 0; i < n; i++) {
+                    if (x === data.x[i])
+                        return data.y[i];
+
                     sum1 += (weights[i] * data.y[i]) / (x - data.x[i]);
                     sum2 += weights[i] / (x - data.x[i]);
                 }
@@ -366,15 +589,19 @@ class Graph {
         this.functionDraw(newData, ctx);
     }
 
+    dataMonotoneDraw(data, ctx) {
+
+    }
+
     functionDraw(data, ctx) {
         ctx.strokeStyle = data.color;
         ctx.lineWidth = 2;
 
         let domain = new Domain(data.domain);
-        let minX = Math.max(this.minX, domain.min);
-        let maxX = Math.min(this.maxX, domain.max);
+        let minX = Math.max(this.minX ?? 0, domain.min);
+        let maxX = Math.min(this.maxX ?? this.getXAmount(), domain.max);
 
-        const d = 0.01;
+        const d = this.xIncrement === undefined ? 0.001 : 0.001 * this.xIncrement;
         ctx.beginPath();
         let y = data.fun(minX);
         ctx.moveTo(this.getXPosition(minX), this.getYPosition(y));
@@ -427,7 +654,8 @@ class Graph {
 class Data {
     static DEFAULTS = {
         domain: `(${Number.NEGATIVE_INFINITY},${Number.POSITIVE_INFINITY})`,
-        parameterIncrement: 0.01
+        parameterIncrement: 0.01,
+        cubicType: "natural",
     };
 
     constructor(obj, defaults) {
@@ -439,6 +667,8 @@ class Data {
 
         if (this.type === "data") {
             this.tryAssign(obj, ["interpolation", "x", "y"]);
+            if (obj.interpolation === "cubic")
+                this.defaultAssign(obj, defaults, ["cubicType"]);
         }
         if (this.type === "function") {
             this.tryAssign(obj, ["fun"]);
@@ -450,6 +680,15 @@ class Data {
         }
         if (this.type === "custom") {
             this.tryAssign(obj, ["fun"]);
+            this.allAssign(obj);
+        }
+
+        this.desc = obj.desc ? obj.desc : this.toMathJaxDescription();
+    }
+
+    allAssign(obj) {
+        for (const p in Object.getOwnPropertyNames(obj)) {
+            this[p] = obj[p];
         }
     }
 
@@ -474,5 +713,51 @@ class Data {
             } else
                 this[p] = obj[p];
         }
+    }
+
+    toMathJaxDescription() {
+        let s = "";
+        if (this.type === "data") {
+            s += `<h3 style='color: ${this.color}'>Discrete Points</h3>`;
+            let internal = '';
+            if (this.interpolation === "cubic") {
+                internal += `<b>Cubic Spline Interpolation</b>: <br> A piecewise function consisting of cubic equations for each set of data points such that
+                        $$ g_i(x)=a_ix^3+b_ix^2+c_ix+d_i,\\ i=0,1,...,${this.x.length - 1}$$
+                        $$ g(x)=g_i(x),\\ for\\ x \\in [${this.x[0]}, ${this.x[this.x.length - 1]}] $$
+                        where the type <b>${this.cubicType}</b> defines the special conditions: `;
+                if (this.cubicType === "natural") {
+                    internal += `$$ g_i''(x)=0 \\implies 6a_ix+2b_i=0,\\ i=0,${this.x.length - 1} $$`;
+                } else if (this.cubicType === "clamped") {
+                    internal += `$$ g_i'(x)=0 \\implies 3a_ix^2+2b_ix+c_i=0,\\ i=0,${this.x.length - 1} $$`;
+                }
+            }
+            if (this.interpolation === "polynomial") {
+                let k = this.x.length - 1;
+                internal += `<b>Lagrange Polynomial Interpolation</b>: <br> A global function that is the unique polynomial that interpolates the given data points. <br>
+                        This polynomial is computed as shown: 
+                        $$ Let\\ w_j=\\prod_{{0\\leq m\\leq ${k}}\\ {m\\neq j}}(x_j - x_m)^{-1} $$
+                        $$ Then\\ L(x)=\\sum_{j=0}^{${k}}{\\frac{w_j}{x-x_j}y_j} / \\sum_{j=0}^{${k}}{\\frac{w_j}{x-x_j}} $$
+                        `;
+            }
+            s += `<p>${internal}</p>`;
+            //this.tryAssign(obj, ["interpolation", "x", "y"]);
+            //if (obj.interpolation === "cubic")
+            //    this.defaultAssign(obj, defaults, ["cubicType"]);
+        }
+        if (this.type === "function") {
+            s += `<h3 style='color: ${this.color}'>Function</h3>`;
+            //this.tryAssign(obj, ["fun"]);
+            //this.defaultAssign(obj, defaults, ["domain"]);
+        }
+        if (this.type === "parametric_function") {
+            s += `<h3 style='color: ${this.color}'>Parametric Function</h3>`;
+            //this.tryAssign(obj, ["x_fun", "y_fun", "parameterMin", "parameterMax"]);
+            //this.defaultAssign(obj, defaults, ["domain", "parameterIncrement"]);
+        }
+        if (this.type === "custom") {
+            s += `<h3 style='color: ${this.color}'>Custom JS Script</h3>`;
+            //this.tryAssign(obj, ["fun"]);
+        }
+        return s;
     }
 }

@@ -1,3 +1,10 @@
+let test = function () {
+    return 1;
+}
+
+console.log(test.toString());
+
+
 let inputs = document.getElementsByTagName("input");
 for (const e in inputs) {
     inputs[e].onchange = function () {
@@ -6,6 +13,8 @@ for (const e in inputs) {
 }
 
 const graph = new Graph("main", window.innerWidth - 64 - 17, window.innerHeight - 6, {
+    title: "<p style='color: #DBDBD7'>Result:</p>",
+    axes: "manual",
     xIncrement: 2,
     yIncrement: 2,
     maxX: 14,
@@ -22,14 +31,14 @@ const graph = new Graph("main", window.innerWidth - 64 - 17, window.innerHeight 
         },
         {
             type: "function",
-            color: "#0090de",
+            color: "#c800de",
             fun: function (x) {
                 return Math.pow(Math.E, x);
             },
         },
         {
             type: "parametric_function",
-            color: "#0090de",
+            color: "#51de00",
             x_fun: function (t) {
                 return Math.cos(t);
             },
@@ -49,9 +58,17 @@ const dataDefault = new Data({
     x: [1, 3, 5, 8],
     y: [2, 3, 9, 10],
 });
+const dataCubicDefault = new Data({
+    type: "data",
+    color: "#0090de",
+    interpolation: "cubic",
+    cubicType: "natural",
+    x: [1, 3, 5, 8],
+    y: [2, 3, 9, 10],
+});
 const functionDefault = new Data({
     type: "function",
-    color: "#0090de",
+    color: "#c800de",
     fun: function (x) {
         return Math.pow(Math.E, x);
     },
@@ -59,7 +76,7 @@ const functionDefault = new Data({
 functionDefault.funText = "return Math.pow(Math.E, x);";
 const parametricFunctionDefault = new Data({
     type: "parametric_function",
-    color: "#0090de",
+    color: "#51de00",
     x_fun: function (t) {
         return Math.cos(t);
     },
@@ -73,7 +90,7 @@ parametricFunctionDefault.xFunText = "return Math.cos(t);";
 parametricFunctionDefault.yFunText = "return Math.sin(t);";
 const customDefault = new Data({
     type: "custom",
-    color: "#0090de",
+    color: "#de0000",
     fun: function (ctx, data, graph) {
 
     }
@@ -83,7 +100,6 @@ const customDefault = new Data({
 addData(dataDefault);
 addData(functionDefault);
 addData(parametricFunctionDefault);
-addData(customDefault);
 
 function addData(data) {
     let s = document.getElementById("datasets");
@@ -120,6 +136,16 @@ function fillDataType(data, f, dataIndex) {
             ["cubic", "Cubic Interpolation"],
             ["polynomial", "Lagrange Polynomial"],
         ], data.interpolation, "Interpolation");
+
+        if (data.interpolation === "cubic") {
+            f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> . </span></div>";
+            f.innerHTML += "<code>cubicType</code><span>: </span>";
+
+            createSelection(f, dataIndex, [
+                ["natural", "Natural"],
+                ["clamped", "Clamped"]
+            ], data.cubicType, "Cubic Type");
+        }
 
         f.innerHTML += "<br> <div class='information'>?<span class='tooltip'> The collection of data points as x and y values (one on each line). e.g. 3 -2 </span></div>";
         f.innerHTML += "<span>Data Points:</span> <br>";
@@ -214,10 +240,19 @@ async function onSettingsChange(dataIndex) {
         if (newData.type === "data") {
             try {
                 newData.interpolation = d.children[9].value;
-                let xy = d.children[14].value;
+
+                let xy;
+                if (newData.interpolation === "cubic") {
+                    newData.cubicType = d.children[14].value;
+                    xy = d.children[19].value;
+                } else {
+                    xy = d.children[14].value;
+                }
+
                 xy = xy.replaceAll('\n', ' ');
                 let decoded = await decodeCoordinates(xy);
                 if (decoded === "error" || decoded[0].length !== decoded[1].length) {
+
                     return;
                 }
 
@@ -226,7 +261,10 @@ async function onSettingsChange(dataIndex) {
 
                 dataObj = new Data(newData);
             } catch (e) {
-                dataObj = dataDefault;
+                if (newData.interpolation === "cubic")
+                    dataObj = dataCubicDefault;
+                else
+                    dataObj = dataDefault;
             }
         } else if (newData.type === "function") {
             try {

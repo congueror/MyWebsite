@@ -19,6 +19,21 @@ function toDegrees(rads) {
     return (rads * 180) / Math.PI;
 }
 
+/**
+ * Runge-Kutta Method 4th order formula is a method of numerical integration of functions over an interval.
+ * @param x {number} Function input parameter
+ * @param dt {number} Interval to calculate
+ * @param f {function} Function to integrate
+ * @returns {number} Integrated value.
+ */
+function RungeKuttaMethod(x, dt, f) {
+    let a = f(x);
+    let b = f(x + (dt / 2) * a) * 2;
+    let c = f(x + (dt / 2) * b) * 2;
+    let d = f(x + dt * c);
+    return (dt / 6) * (a + b + c + d);
+}
+
 function createMatrix(array) {
     let m = new Matrix(array.length, array[0].length);
     for (let i = 0; i < m.rows; i++) {
@@ -168,7 +183,6 @@ class Matrix {
                 row1.multiplyRow(0, -(n / m));
                 this.addRow(i, row1);
             }
-            this.print();
         }
 
         let variableMatrix = new Matrix(this.rows, 1);
@@ -218,11 +232,11 @@ class Domain {
         s = s.replaceAll(' ', '');
 
         if (!(s.startsWith('(') || s.startsWith('[')))
-            throw `There was an error parsing the domain ${s}\n`;
+            throw `There was an error parsing the domain '${s}'\n`;
         if (!(s.endsWith(')') || s.endsWith(']')))
-            throw `There was an error parsing the domain ${s}\n`;
+            throw `There was an error parsing the domain '${s}'\n`;
         if (!s.includes(','))
-            throw `There was an error parsing the domain ${s}\n`;
+            throw `There was an error parsing the domain '${s}'\n`;
 
         this.bottom = s.startsWith('(') ? 'open' : 'closed';
         this.top = s.endsWith(')') ? 'open' : 'closed';

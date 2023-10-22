@@ -1,11 +1,11 @@
-function drawVector(name, x, y, dx, dy, color) {
-    drawArrow(x, y, dx, dy, color, 3);
+function drawVector(ctx, name, x, y, dx, dy, color) {
+    drawArrow(ctx, x, y, dx, dy, color, 3);
     let fontSize = 13;
     ctx.font = `${fontSize}px Verdana`;
     ctx.fillText(name, x + dx + 10, y + dy + 10);
 }
 
-function drawArrow(x, y, dx, dy, color, width) {
+function drawArrow(ctx, x, y, dx, dy, color, width) {
     ctx.beginPath();
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
