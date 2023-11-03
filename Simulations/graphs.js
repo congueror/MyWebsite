@@ -1,10 +1,3 @@
-let test = function () {
-    return 1;
-}
-
-console.log(test.toString());
-
-
 let inputs = document.getElementsByTagName("input");
 for (const e in inputs) {
     inputs[e].onchange = function () {

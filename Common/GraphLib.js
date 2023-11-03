@@ -649,6 +649,14 @@ class Graph {
 
         ctx.stroke();
     }
+
+    destroy() {
+        let a = document.getElementById(this.id);
+        while (a.children.length !== 0)
+            a.removeChild(a.firstElementChild);
+
+        Graph.GRAPHS.delete(this.id);
+    }
 }
 
 class Data {

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mandelbrot Set</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="../icons/favicon.ico">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+
+<div class="menu_bar">
+    <button class="menu_button" role="button" onclick="redirect('')"></button>
+</div>
+
+<br>
+
+<canvas id="main"></canvas>
+
+
+</body>
+
+<script src="../Common/MathLib.js"></script>
+
+<script>
+
+    let c = document.getElementById("main");
+    c.width = window.innerWidth - 64 - 17;
+    c.height = window.innerHeight;
+    let ctx = c.getContext("2d");
+
+    const REAL_SET = { start: -2, end: 1 }
+    const IMAGINARY_SET = { start: -1, end: 1 }
+
+    generate();
+
+    function generate() {
+        let depth = 80;
+        for (let i = 0; i < c.width; i++) {
+            for (let j = 0; j < c.height; j++) {
+                let w = c.width, h = c.height;
+                let n = mandelbrotSet({
+                    r: ( REAL_SET.start + (i / w) * (REAL_SET.end - REAL_SET.start) ),
+                    i: ( IMAGINARY_SET.start + (j / h) * (IMAGINARY_SET.end - IMAGINARY_SET.start) )}, depth);
+                ctx.fillStyle = `rgb(${(n / depth) * 255}, ${(n / depth) * 255}, ${(n / depth) * 255})`;
+                ctx.fillRect(i, j, 1, 1);
+            }
+        }
+    }
+
+    function mandelbrotSet(complex, depth) {
+        let result = {r: 0, i: 0};
+        let i = 0;
+        while (distance(result) <= 2 && i < depth) {
+            result = mandelbrotFunction(result, complex);
+            i++;
+        }
+
+        return i;
+    }
+
+    function mandelbrotFunction(z, c) {
+        return {r: z.r * z.r + c.r - z.i * z.i, i: 2 * z.r * z.i + c.i};
+    }
+
+    function distance(complex) {
+        return Math.sqrt(complex.r * complex.r + complex.i * complex.i);
+    }
+</script>
+
+</html>

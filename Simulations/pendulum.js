@@ -127,26 +127,6 @@ c.width = window.innerWidth - 64 - 17;
 c.height = window.innerHeight;
 let ctx = c.getContext("2d");
 
-/*
-{
-    let T_l = document.getElementById("period_length");
-    T_l.width = c.width / 2;
-    T_l.height = c.height / 2;
-
-    let T_a = document.getElementById("period_angle");
-    T_a.width = c.width / 2;
-    T_a.height = c.height / 2;
-
-    let T_g = document.getElementById("period_gravity");
-    T_g.width = c.width / 2;
-    T_g.height = c.height / 2;
-
-    let T_m = document.getElementById("period_mass");
-    T_m.width = c.width / 2;
-    T_m.height = c.height / 2;
-}
-*/
-
 let length = document.getElementById("length_input");
 length.value = "200";
 let angle = document.getElementById("angle_input");
@@ -205,13 +185,6 @@ function reset() {
     experimentalPeriod = 0;
 
     intervalId = setInterval(draw, 10);
-
-    window.addEventListener("message", event => {
-        let fn = window[event.data.graph];
-        if (typeof fn === 'function') {
-            fn(event.data.xValues, event.data.expYValues, event.data.thYValues, event.data.errorYValues);
-        }
-    });
 
     period_length_graph();
     period_angle_graph();
@@ -322,7 +295,7 @@ function createGraph(id, xValues, theoretical, experimental, error, title) {
                 type: "data",
                 color: "#0090de",
                 interpolation: "cubic",
-                cubicType: "clamped",
+                cubicType: "natural",
                 x: [...xValues],
                 y: theoretical,
             },
@@ -330,7 +303,7 @@ function createGraph(id, xValues, theoretical, experimental, error, title) {
                 type: "data",
                 color: "#de0000",
                 interpolation: "cubic",
-                cubicType: "clamped",
+                cubicType: "natural",
                 x: [...xValues],
                 y: experimental,
             },
@@ -338,7 +311,7 @@ function createGraph(id, xValues, theoretical, experimental, error, title) {
                 type: "data",
                 color: "#4ade00",
                 interpolation: "cubic",
-                cubicType: "clamped",
+                cubicType: "natural",
                 x: [...xValues],
                 y: error,
             }
@@ -395,17 +368,11 @@ function period_length_graph() {
     }
 
     if (chartLength !== null) {
-        chartLength.dataset[0].x = xValues;
-        chartLength.dataset[0].y = thYValues;
-        chartLength.dataset[1].x = xValues;
-        chartLength.dataset[1].y = expYValues;
-        chartLength.dataset[2].x = xValues;
-        chartLength.dataset[2].y = errorYValues;
-        chartLength.redraw();
-    } else {
-        chartLength = createGraph("period_length", xValues, thYValues, expYValues, errorYValues,
-            `$$\\color{#D3D3D3FF} T=f(l):\\ Period/Length\\ Graph\\ with\\ \\theta = ${angle.value}^\\circ,\\ g= ${g.value}\\frac{m}{s^2}$$`);
+        chartLength.destroy();
+        chartLength = null;
     }
+    chartLength = createGraph("period_length", xValues, thYValues, expYValues, errorYValues,
+        `$$\\color{#D3D3D3FF} T=f(l):\\ Period/Length\\ Graph\\ with\\ \\theta = ${angle.value}^\\circ,\\ g= ${g.value}\\frac{m}{s^2}$$`);
 }
 
 function period_angle_graph() {
@@ -423,17 +390,11 @@ function period_angle_graph() {
     errorYValues.push(0);
 
     if (chartAngle !== null) {
-        chartAngle.dataset[0].x = xValues;
-        chartAngle.dataset[0].y = thYValues;
-        chartAngle.dataset[1].x = xValues;
-        chartAngle.dataset[1].y = expYValues;
-        chartAngle.dataset[2].x = xValues;
-        chartAngle.dataset[2].y = errorYValues;
-        chartAngle.redraw();
-    } else {
-        chartAngle = createGraph("period_angle", xValues, thYValues, expYValues, errorYValues,
-            `$$\\color{#D3D3D3FF} T=f(\\theta):\\ Period/Angle\\ Graph\\ with\\ L=${length.value}cm,\\ g=${g.value}\\frac{m}{s^2}$$`);
+        chartAngle.destroy();
+        chartAngle = null;
     }
+    chartAngle = createGraph("period_angle", xValues, thYValues, expYValues, errorYValues,
+        `$$\\color{#D3D3D3FF} T=f(\\theta):\\ Period/Angle\\ Graph\\ with\\ L=${length.value}cm,\\ g=${g.value}\\frac{m}{s^2}$$`);
 }
 
 function period_gravity_graph() {
@@ -447,17 +408,11 @@ function period_gravity_graph() {
     }
 
     if (chartGravity !== null) {
-        chartGravity.dataset[0].x = xValues;
-        chartGravity.dataset[0].y = thYValues;
-        chartGravity.dataset[1].x = xValues;
-        chartGravity.dataset[1].y = expYValues;
-        chartGravity.dataset[2].x = xValues;
-        chartGravity.dataset[2].y = errorYValues;
-        chartGravity.redraw();
-    } else {
-        chartGravity = createGraph("period_gravity", xValues, thYValues, expYValues, errorYValues,
-            `$$\\color{#D3D3D3FF} T=f(g):\\ Period/Gravity\\ Graph\\ with\\ L=${length.value}cm,\\ θ=${angle.value}^\\circ $$`);
+        chartGravity.destroy();
+        chartGravity = null;
     }
+    chartGravity = createGraph("period_gravity", xValues, thYValues, expYValues, errorYValues,
+        `$$\\color{#D3D3D3FF} T=f(g):\\ Period/Gravity\\ Graph\\ with\\ L=${length.value}cm,\\ θ=${angle.value}^\\circ $$`);
 }
 
 function period_mass_graph() {
@@ -477,15 +432,9 @@ function period_mass_graph() {
     }
 
     if (chartMass !== null) {
-        chartMass.dataset[0].x = xValues;
-        chartMass.dataset[0].y = thYValues;
-        chartMass.dataset[1].x = xValues;
-        chartMass.dataset[1].y = expYValues;
-        chartMass.dataset[2].x = xValues;
-        chartMass.dataset[2].y = errorYValues;
-        chartMass.redraw();
-    } else {
-        chartMass = createGraph("period_mass", xValues, thYValues, expYValues, errorYValues,
-            `$$\\color{#D3D3D3FF} T=f(m):\\ Period/Mass\\ Graph\\ with\\ L=${length.value}cm,\\ θ=${angle.value}^\\circ,\\ g=${g.value}\\frac{m}{s^2} $$`);
+        chartMass.destroy();
+        chartMass = null;
     }
+    chartMass = createGraph("period_mass", xValues, thYValues, expYValues, errorYValues,
+        `$$\\color{#D3D3D3FF} T=f(m):\\ Period/Mass\\ Graph\\ with\\ L=${length.value}cm,\\ θ=${angle.value}^\\circ,\\ g=${g.value}\\frac{m}{s^2} $$`);
 }
