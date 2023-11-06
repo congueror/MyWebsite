@@ -15,8 +15,6 @@
     <button class="menu_button" role="button" onclick="redirect('')"></button>
 </div>
 
-<br>
-
 <canvas id="main"></canvas>
 
 
@@ -27,27 +25,85 @@
 <script>
 
     let c = document.getElementById("main");
-    c.width = window.innerWidth - 64 - 17;
-    c.height = window.innerHeight;
-    let ctx = c.getContext("2d");
+    c.height = window.innerHeight * 0.9;
+    c.width = c.height * (3/2);
+    c.addEventListener("wheel", ev => {
+        ev.preventDefault();
 
-    const REAL_SET = { start: -2, end: 1 }
-    const IMAGINARY_SET = { start: -1, end: 1 }
+        let mouse = {x: ev.clientX - 64, y: ev.clientY};
+        let delta = ev.deltaY;
+
+        console.log(mouse, delta, c.clientTop, c.clientLeft);
+
+        let zoomStep = 1, realZoom = zoomStep * (3/2) / 2, imagZoom = zoomStep / 2;
+
+        let realLength = c.width / 3;
+        let realEnd = Math.min(mouse.x + realLength * realZoom, c.width);
+        let realStart = Math.max(mouse.x - realLength * realZoom, 0);
+        realStart -= Math.max(0, mouse.x + realLength * realZoom - c.width);
+        realEnd -= Math.min(0, mouse.x - realLength * realZoom);
+        REAL_SET = { start: toRealNumber(realStart), end: toRealNumber(realEnd) };
+
+
+        let imagLength = c.height / 2;
+        let imagEnd = Math.min(mouse.y + imagLength * imagZoom, c.height);
+        let imagStart = Math.max(mouse.y - imagLength * imagZoom, 0);
+        imagStart -= Math.max(0, mouse.y + imagLength * imagZoom - c.height);
+        imagEnd -= Math.min(0, mouse.y -imagLength * imagZoom);
+        IMAGINARY_SET = { start: toImaginaryNumber(imagStart), end: toImaginaryNumber(imagEnd) };
+
+        setTimeout(() => generate(), 10);
+    }, {passive: false});
+
+    //c.addEventListener("mousemove", ev => {
+    //    let mouse = {x: ev.clientX - 64, y: ev.clientY};
+//
+    //    let realLength = c.width / 3;
+    //    let realEnd = Math.min(mouse.x + realLength * 0.5, c.width);
+    //    let realStart = Math.max(mouse.x - realLength * 0.75, 0);
+    //    realStart -= Math.max(0, mouse.x + realLength * 0.5 - c.width);
+    //    realEnd -= Math.min(0, mouse.x - realLength * 0.75);
+//
+    //    let imagLength = c.height / 2;
+    //    let imagEnd = Math.min(mouse.y + imagLength * 0.5, c.height);
+    //    let imagStart = Math.max(mouse.y - imagLength * 0.5, 0);
+    //    imagStart -= Math.max(0, mouse.y + imagLength * 0.5 - c.height);
+    //    imagEnd -= Math.min(0, mouse.y -imagLength * 0.5);
+//
+    //    ctx.strokeStyle = 'rgb(255, 0, 0)';
+    //    ctx.strokeRect(realStart, imagStart, realEnd - realStart, imagEnd - imagStart);
+    //});
+
+    var ctx = c.getContext("2d");
+
+    var REAL_SET = { start: -2, end: 1 };
+    var IMAGINARY_SET = { start: -1, end: 1 };
+    var DEPTH = 80;
 
     generate();
 
     function generate() {
-        let depth = 80;
+        let maxDepth = 0;
         for (let i = 0; i < c.width; i++) {
             for (let j = 0; j < c.height; j++) {
-                let w = c.width, h = c.height;
                 let n = mandelbrotSet({
-                    r: ( REAL_SET.start + (i / w) * (REAL_SET.end - REAL_SET.start) ),
-                    i: ( IMAGINARY_SET.start + (j / h) * (IMAGINARY_SET.end - IMAGINARY_SET.start) )}, depth);
-                ctx.fillStyle = `rgb(${(n / depth) * 255}, ${(n / depth) * 255}, ${(n / depth) * 255})`;
+                    r: ( toRealNumber(i) ),
+                    i: ( toImaginaryNumber(j) )}, DEPTH);
+                ctx.fillStyle = `rgb(${(n / DEPTH) * 255}, ${(n / DEPTH) * 255}, ${(n / DEPTH) * 255})`;
                 ctx.fillRect(i, j, 1, 1);
+                if (n > maxDepth)
+                    maxDepth = n;
             }
         }
+        DEPTH = maxDepth;
+    }
+
+    function toRealNumber(x) {
+        return REAL_SET.start + (x / c.width) * (REAL_SET.end - REAL_SET.start);
+    }
+
+    function toImaginaryNumber(y) {
+        return IMAGINARY_SET.start + (y / c.height) * (IMAGINARY_SET.end - IMAGINARY_SET.start);
     }
 
     function mandelbrotSet(complex, depth) {
