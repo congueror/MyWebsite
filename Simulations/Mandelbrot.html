@@ -8,6 +8,7 @@
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script type="text/javascript" id="MathJax-script" async
             src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <script src="../main.js"></script>
 </head>
 <body>
 
@@ -15,7 +16,14 @@
     <button class="menu_button" role="button" onclick="redirect('')"></button>
 </div>
 
-<canvas id="main"></canvas>
+<br>
+
+<h2> $$ f_c(z) = z^2 + c $$</h2>
+
+<canvas id="main" style="display: block;
+    margin-left: auto;
+    margin-right: auto;"></canvas>
+
 
 
 </body>
@@ -29,6 +37,7 @@
     c.width = c.height * (3/2);
     c.addEventListener("wheel", ev => {
         ev.preventDefault();
+        ZOOM++;
 
         let mouse = {x: ev.clientX - 64, y: ev.clientY};
         let delta = ev.deltaY;
@@ -79,11 +88,12 @@
     var REAL_SET = { start: -2, end: 1 };
     var IMAGINARY_SET = { start: -1, end: 1 };
     var DEPTH = 80;
+    var ZOOM = 0;
 
     generate();
 
     function generate() {
-        let maxDepth = 0;
+        DEPTH = 80 + ZOOM * 10;
         for (let i = 0; i < c.width; i++) {
             for (let j = 0; j < c.height; j++) {
                 let n = mandelbrotSet({
@@ -91,11 +101,8 @@
                     i: ( toImaginaryNumber(j) )}, DEPTH);
                 ctx.fillStyle = `rgb(${(n / DEPTH) * 255}, ${(n / DEPTH) * 255}, ${(n / DEPTH) * 255})`;
                 ctx.fillRect(i, j, 1, 1);
-                if (n > maxDepth)
-                    maxDepth = n;
             }
         }
-        DEPTH = maxDepth;
     }
 
     function toRealNumber(x) {

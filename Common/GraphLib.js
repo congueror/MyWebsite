@@ -630,20 +630,54 @@ class Graph {
         const d = data.parameterIncrement;
         ctx.beginPath();
 
+
         let x = data.x_fun(data.parameterMin);
         let y = data.y_fun(data.parameterMin);
         ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
         let minT = data.parameterMin, maxT = data.parameterMax;
-        for (let t = minT; t < maxT; t += d) {
-            x = data.x_fun(t);
-            y = data.y_fun(t);
 
-            if (y <= this.maxY && y >= this.minY && x <= maxX && x >= minX) {
-                ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
-            } else {
+        let obj = {
+            t: data.parameterMin,
+            x: data.x_fun(data.parameterMin),
+            y: data.y_fun(data.parameterMin),
+        };
+
+        if (data.animationInterval > 0) {
+            var code = setInterval((ctx, obj, minT, maxT, minX, maxX, minY, maxY, d) => {
+
+                if (obj.t >= maxT) {
+
+                    clearInterval(code);
+                    return;
+                }
+
+                obj.x = data.x_fun(obj.t);
+                obj.y = data.y_fun(obj.t);
+
+                if (obj.y <= maxY && obj.y >= minY && obj.x <= maxX && obj.x >= minX) {
+                    ctx.lineTo(this.getXPosition(obj.x), this.getYPosition(obj.y));
+                } else {
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(this.getXPosition(obj.x), this.getYPosition(obj.y));
+                }
+
                 ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+
+                obj.t += d;
+            }, data.animationInterval, ctx, obj, minT, maxT, minX, maxX, this.minY, this.maxY, d);
+        } else {
+            for (let t = minT; t < maxT; t += d) {
+                x = data.x_fun(t);
+                y = data.y_fun(t);
+
+                if (y <= this.maxY && y >= this.minY && x <= maxX && x >= minX) {
+                    ctx.lineTo(this.getXPosition(x), this.getYPosition(y));
+                } else {
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(this.getXPosition(x), this.getYPosition(y));
+                }
             }
         }
 
@@ -663,6 +697,7 @@ class Data {
     static DEFAULTS = {
         domain: `(${Number.NEGATIVE_INFINITY},${Number.POSITIVE_INFINITY})`,
         parameterIncrement: 0.01,
+        animationInterval: 0,
         cubicType: "natural",
     };
 
@@ -684,7 +719,7 @@ class Data {
         }
         if (this.type === "parametric_function") {
             this.tryAssign(obj, ["x_fun", "y_fun", "parameterMin", "parameterMax"]);
-            this.defaultAssign(obj, defaults, ["domain", "parameterIncrement"]);
+            this.defaultAssign(obj, defaults, ["domain", "parameterIncrement", "animationInterval"]);
         }
         if (this.type === "custom") {
             this.tryAssign(obj, ["fun"]);

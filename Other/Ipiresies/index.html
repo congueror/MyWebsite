@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-color: #36393F;
+            text-align: center;
+            font-size: 20px;
+            font-family: Georgia, serif;
+            color: white;
+        }
+
+        table {
+            margin: 0 auto;
+            table-layout: fixed;
+            border-spacing: 0;
+            width: 95%;
+        }
+
+        td {
+            border: 1px solid white;
+            padding: 0;
+        }
+
+        .headers {
+            background-color: rgb(224, 90, 0);
+            background-color: rgba(255, 0, 0, 0.795);
+        }
+
+        .name {
+            font-size: 12px;
+        }
+
+        #ypiresies-stelexon td[contenteditable="true"] {
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <br>
+    <br>
+    Ημερομηνία: <input id="date" type="date" onchange="onDateChange()">
+
+    <br>
+    Υπηρεσίες: <br>
+    <table id="ypiresies"></table>
+    <br>
+
+    Υπηρεσίες Στελεχών:
+    <table id="ypiresies-stelexon"></table>
+
+    <br>
+    <input type="button" value="Δημιούργησε" onclick="onGenerate()">
+    <input type="button" value="Εξαγωγή" onclick="onExport()">
+    <br>
+    <input type="file" id="import" value="Εισαγωγή" onchange="onImport()">
+    <br>
+    <br>
+
+</body>
+
+<script>
+    window.addEventListener("beforeunload", function (e) {
+        var confirmationMessage = 'It looks like you have been editing something. '
+            + 'If you leave before saving, your changes will be lost.';
+
+        (e || window.event).returnValue = confirmationMessage;
+        return confirmationMessage;
+    });
+
+    var yp = [];
+    var arx = [];
+    var axif = [];
+
+    const colors = new Map([
+        ["1", { color: "#87cefa" }],
+        ["2", { color: "#87cefa" }],
+        ["3", { color: "#87cefa" }],
+        ["4", { color: "#87cefa" }],
+        ["ΑΣΦ", { color: "#87cefa" }],
+        ["ΕΠ", { color: "#90ee90" }],
+        ["75", { color: "#90ee90" }],
+        ["ΑΡΧ", { color: "#800080" }],
+        ["ΔΝ", { color: "#ff0000" }],
+        ["ΑΑ", { color: "#ff0000" }],
+        ["ΚΑ", { color: "#ff0000" }],
+        ["ΤΑ", { color: "#ff0000" }],
+    ]);
+
+    const names = [
+        "ΑΝΤΩΝΙΟΥ ΧΡΙΣΤΟΣ", "ΚΥΡΙΑΚΟΥ ΛΟΥΚΑΣ", "ΜΙΧΑΗΛ ΑΡΓΥΡΗΣ", "ΝΕΟΠΤΟΛΕΜΟΥ ΧΡΙΣΤΟΔΟΥΛΟΣ",
+        "ΠΑΝΑΓΗ ΚΥΡΙΑΚΟΣ", "ΧΡΙΣΤΟΔΟΥΛΟΥ ΔΗΜΗΤΡΗΣ", "ΑΝΔΡΕΟΥ ΜΑΡΙΟΣ", "ΣΑΜΑΡΑΣ ΗΛΙΑΣ",
+        "ΦΡΑΓΚΕΣΚΟΥ ΧΡΙΣΤΟΣ", "ΜΑΤΟΛΗ ΣΤΑΘΗΣ", "ΔΗΜΗΤΡΙΟΥ ΣΤΕΛΙΟΣ", "ΜΟΤΙΤΗΣ ΠΕΤΡΟΣ",
+        "ΣΕΡΓΙΔΗΣ ΑΝΔΡΕΑΣ", "ΑΛΑΜΠΡΙΤΗ ΦΡΑΓΚΕΣΚΟΣ"
+    ];
+    createNameTable("ypiresies", null, true);
+
+    document.getElementById("date").valueAsDate = new Date();
+    createStelexoiTable();
+
+
+    function createNameTable(id, data = null, isEditable = false) {
+        let table = document.getElementById(id);
+        table.innerHTML += `<tr class="headers">
+            <td> </td>
+            <td>Δευτέρα</td>
+            <td>Τρίτη</td>
+            <td>Τετάρτη</td>
+            <td>Πέμπτη</td>
+            <td>Παρασκευή</td>
+            <td>Σάββατο</td>
+            <td>Κυριακή</td>
+            <td>ΥΠ</td>
+            <td>ΕΠ</td>
+            <td>75</td>
+            <td>ΔΝ</td>
+        </tr>`;
+
+
+        let i = 0;
+        names.forEach(name => {
+            let row = document.createElement("tr");
+            if (i % 2 === 0)
+                row.style.backgroundColor = "#6e7480";
+
+            if (isEditable) {
+                insertDataEditable(row, name, "name");
+                row.setAttribute("id", `yp-${i}`);
+                for (let j = 0; j < 7; j++) {
+                    let s = "";
+                    if (data !== null)
+                        s = data[i][j];
+                    let td = insertDataEditable(row, s);
+
+                    let obs = new MutationObserver((mutations, obs) => tableObserver(mutations, obs));
+                    obs.observe(td, { characterData: "true", characterDataOldValue: "true", subtree: "true" });
+                }
+            } else {
+                insertData(row, name, "name");
+                for (let j = 0; j < 7; j++) {
+                    let s = "";
+                    if (data !== null)
+                        s = data[i][j];
+                    let dayTd = insertData(row, s);
+
+                    for (const k of colors.keys()) {
+                        if (s.includes(k)) {
+                            exists = true;
+                            dayTd.style.color = colors.get(k).color;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            insertData(row, "0").style.backgroundColor = "rgb(224, 90, 0)";
+            insertData(row, "0").style.backgroundColor = "rgb(224, 90, 0)";
+            insertData(row, "0").style.backgroundColor = "rgb(224, 90, 0)";
+            insertData(row, "0").style.backgroundColor = "rgb(224, 90, 0)";
+
+            table.appendChild(row);
+            i++;
+        });
+
+        const dailyRows = ["1", "2", "3", "4", "ΑΣΦ", "ΕΠ", "75", "ΑΠΩΝ"];
+        dailyRows.forEach(d => {
+            let row = document.createElement("tr");
+            row.style.fontStyle = "italic";
+            row.style.color = "rgba(189, 189, 189, 0.733)";
+            insertData(row, d);
+            for (let j = 0; j < 7; j++) {
+                insertData(row, "0");
+            }
+            table.appendChild(row);
+        })
+    }
+
+    function tableObserver(mutations, obs) {
+        countAndColorTable(document.getElementById("ypiresies"));
+    }
+
+    function countAndColorTable(table) {
+        let rowCounter = createYpCounter();
+        let columnCounter = createYpCounter(true);
+
+        for (let j = 1; j < table.rows.length - 8; j++) {
+            let row = table.rows[j];
+            for (let i = 1; i < 8; i++) {
+                let cell = row.cells[i].innerHTML;
+                rowCounter.increment(cell);
+                columnCounter.increment(cell, i - 1);
+
+                let exists = false;
+                for (const k of colors.keys()) {
+                    if (cell.includes(k)) {
+                        exists = true;
+                        row.cells[i].style.color = colors.get(k).color;
+                        break;
+                    }
+                }
+                if (!exists)
+                    row.cells[i].style.color = "#ffffff";
+            }
+
+            row.cells[8].innerHTML = `${rowCounter.sum("1", "2", "3", "4", "ΑΣΦ")}`;
+            row.cells[9].innerHTML = `${rowCounter.sum("ΕΠ")}`;
+            row.cells[10].innerHTML = `${rowCounter.sum("75")}`;
+            row.cells[11].innerHTML = `${rowCounter.sum("ΔΝ")}`;
+
+            rowCounter.clear();
+        }
+
+        for (let i = 0; i < 7; i++) {
+            table.rows[15].cells[i + 1].innerHTML = `${columnCounter.get("1")[i]}`;
+            table.rows[16].cells[i + 1].innerHTML = `${columnCounter.get("2")[i]}`;
+            table.rows[17].cells[i + 1].innerHTML = `${columnCounter.get("3")[i]}`;
+            table.rows[18].cells[i + 1].innerHTML = `${columnCounter.get("4")[i]}`;
+            table.rows[19].cells[i + 1].innerHTML = `${columnCounter.get("ΑΣΦ")[i]}`;
+            table.rows[20].cells[i + 1].innerHTML = `${columnCounter.get("ΕΠ")[i]}`;
+            table.rows[21].cells[i + 1].innerHTML = `${columnCounter.get("75")[i]}`;
+            table.rows[22].cells[i + 1].innerHTML = `${columnCounter.sum("ΑΡΧ", "ΔΝ", "ΑΑ", "ΚΑ", "ΤΑ")[i]}`;
+        }
+    }
+
+    function createStelexoiTable() {
+        let t = document.getElementById("ypiresies-stelexon");
+        for (let i = t.children.length - 1; i >= 0; i--) {
+            t.removeChild(t.children[i]);
+        }
+
+        let date1 = document.getElementById("date").valueAsDate;
+        if (date1 === null)
+            return;
+        let rMeres = document.createElement("tr");
+        insertData(rMeres, " ");
+        let rArxBath = document.createElement("tr");
+        insertData(rArxBath, "Βαθμός Αρχιφύλακα");
+        let rArx = document.createElement("tr");
+        insertData(rArx, "Αρχιφύλακας");
+        let rAxifBath = document.createElement("tr");
+        insertData(rAxifBath, "Βαθμός ΑΞΥΦ");
+        let rAxif = document.createElement("tr");
+        insertData(rAxif, "ΑΞΥΦ");
+        for (let i = 0; i < 7; i++) {
+            insertData(rMeres, date1.toDateString());
+            date1 = new Date(date1.getTime() + 8.64e7);
+
+            insertDataEditable(rArxBath, "ΣΥΟΠ ΔΝΕΑΣ (ΠΖ)");
+            insertDataEditable(rArx);
+            insertDataEditable(rAxifBath);
+            insertDataEditable(rAxif);
+        }
+        t.appendChild(rMeres);
+        t.appendChild(rArxBath);
+        t.appendChild(rArx);
+        t.appendChild(rAxifBath);
+        t.appendChild(rAxif);
+    }
+
+    function insertData(row, data, clazz = "") {
+        let td1 = document.createElement("td");
+        td1.innerHTML += data;
+        if (clazz !== "")
+            td1.className = clazz;
+        row.appendChild(td1);
+        return td1;
+    }
+
+    function insertDataEditable(row, data = "", clazz = "") {
+        let td1 = document.createElement("td");
+        td1.setAttribute("contenteditable", "true");
+        td1.innerHTML += data;
+        if (clazz !== "")
+            td1.className = clazz;
+        row.appendChild(td1);
+        return td1;
+    }
+
+    function fillArrays() {
+        yp = [];
+        for (let i = 0; i < names.length; i++) {
+            let row = document.getElementById(`yp-${i}`);
+            let rowValues = [];
+            for (let j = 1; j <= 7; j++) {
+                rowValues.push(row.children[j].innerText);
+            }
+            yp.push(rowValues);
+        }
+
+        arx = [];
+        axif = [];
+        let t = document.getElementById("ypiresies-stelexon");
+        for (let i = 0; i < 7; i++) {
+            let row1 = t.rows[1];
+            let row2 = t.rows[2];
+            arx.push({ rank: row1.cells[i + 1].innerText, name: row2.cells[i + 1].innerText });
+            let row3 = t.rows[3];
+            let row4 = t.rows[4];
+            axif.push({ rank: row3.cells[i + 1].innerText, name: row4.cells[i + 1].innerText });
+        }
+    }
+
+    function onDateChange() {
+        let imp = document.getElementById("import");
+        imp.value = null;
+    }
+
+    function onGenerate() {
+        let body = document.getElementById("body");
+
+        fillArrays();
+
+        yp = createYp(yp);
+
+        document.getElementById("ypiresies-result")?.remove();
+
+        let table = document.createElement("table");
+        table.setAttribute("id", "ypiresies-result");
+        body.appendChild(table);
+        createNameTable("ypiresies-result", yp);
+        countAndColorTable(document.getElementById("ypiresies-result"));
+    }
+
+    function onExport() {
+        fillArrays();
+        let json = {};
+
+        json.date = document.getElementById("date").valueAsDate.toISOString();
+        json.yp = yp;
+        json.arx = arx;
+        json.axif = axif;
+
+        let jsonStr = JSON.stringify(json).replaceAll("\\\"", "\"");
+        downloadJSON('export.json', jsonStr);
+    }
+
+    function onImport() {
+        let imp = document.getElementById("import");
+        let fileStr = imp.files[0].text().then(a => {
+            let json = JSON.parse(a);
+
+            document.getElementById("date").valueAsDate = new Date(json.date);
+
+            let t = document.getElementById("ypiresies-stelexon");
+            for (let i = 0; i < 7; i++) {
+                let row1 = t.rows[1];
+                let row2 = t.rows[2];
+                row1.cells[i + 1].innerText = json.arx[i].rank;
+                row2.cells[i + 1].innerText = json.arx[i].name;
+                let row3 = t.rows[3];
+                let row4 = t.rows[4];
+                row3.cells[i + 1].innerText = json.axif[i].rank;
+                row4.cells[i + 1].innerText = json.axif[i].name;
+            }
+
+            t = document.getElementById("ypiresies");
+            for (let i = 0; i < names.length; i++) {
+                let row = document.getElementById(`yp-${i}`);
+                for (let j = 1; j <= 7; j++) {
+                    row.cells[j].innerText = json.yp[i][j - 1];
+                }
+            }
+
+            fillArrays();
+            countAndColorTable(document.getElementById("ypiresies"));
+        });
+
+    }
+
+    function createYp(table) {
+        let start = [...table];
+
+        let _75 = new Array(start.length).fill(0).map(() => new Array(0));
+        let _$75 = new Array(start.length).fill(0);
+        for (let i = 0; i < start.length; i++) {
+            _$75[i] = i;
+            for (let j = 0; j < 6; j++) {
+                if (start[i][j] === '' && start[i][j + 1] === '') {
+                    _75[i].push(j + 1);
+                }
+            }
+        }
+
+        let j, key1, key2;
+        for (let i = 1; i < _75.length; i++) {
+            key1 = _75[i];
+            key2 = _$75[i];
+            j = i - 1;
+
+            while (j >= 0 && _75[j].length > key1.length) {
+                _75[j + 1] = _75[j];
+                _$75[j + 1] = _$75[j];
+                j--;
+            }
+
+            _75[j + 1] = key1;
+            _$75[j + 1] = key2;
+        }
+
+        let days = new Array(6).fill(0).map((v, n) => { nth: n + 1; c: 0 }); // No Monday
+        for (let i = 0; i < days.length - 1; i++) {
+            for (let j = 0; j < start.length; j++) {
+                if (start[j][i + 1] === '' && start[j][i + 2] === '')
+                    days[i].c = days[i].c + 1;
+            }
+        }
+        days.sort((a, b) => a.c - b.c);
+
+
+        for (let j = 1; j < 7; j++) {
+            let counter = 0;
+            for (let k = 0; k < start.length; k++) {
+                if (start[k][j] === '75')
+                    counter++;
+            }
+
+            while (counter < 2) {
+                for (let i = 0; i < _75.length; i++) {
+                    for (let l = 0; l < _75[i].length; l++)
+                        if (_75[i][l] === days[j - 1]) {
+                            start[_$75[i]][_75[i][l]] = '75';
+                            _75[i].splice(l, 1);
+                            l--;
+                            counter++;
+                        }
+                }
+            }
+        }
+
+        return table;
+    }
+
+    function createYpCounter(isArray = false) {
+        let counter = new Map();
+
+        for (const k of colors.keys())
+            if (!isArray)
+                counter.set(k, 0);
+            else
+                counter.set(k, [0, 0, 0, 0, 0, 0, 0]);
+
+        if (isArray)
+            counter.increment = (key, column) => {
+                if (counter.has(key))
+                    counter.get(key)[column] = counter.get(key)[column] + 1;
+            }
+        else
+            counter.increment = (key) => {
+                if (counter.has(key))
+                    counter.set(key, counter.get(key) + 1);
+            }
+
+        if (isArray)
+            counter.sum = (...keys) => {
+                let sum = [0, 0, 0, 0, 0, 0, 0];
+                keys.forEach(k => {
+                    for (let i = 0; i < 7; i++) {
+                        sum[i] += counter.get(k)[i];
+                    }
+                });
+                return sum;
+            }
+        else
+            counter.sum = (...keys) => {
+                let sum = 0;
+                keys.forEach(k => sum += counter.get(k));
+                return sum;
+            }
+
+        counter.clear = () => {
+            for (const k of colors.keys())
+                counter.set(k, 0);
+        }
+        return counter;
+    }
+
+    function downloadJSON(filename, jsonStr) {
+        let element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+</script>
+
+</html>

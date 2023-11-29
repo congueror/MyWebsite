@@ -34,8 +34,6 @@ function RungeKuttaMethod(x, dt, f) {
     return (dt / 6) * (a + b + c + d);
 }
 
-
-
 function createMatrix(array) {
     let m = new Matrix(array.length, array[0].length);
     for (let i = 0; i < m.rows; i++) {

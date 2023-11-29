@@ -9,7 +9,6 @@ canvas {
     z-index: 0;
     position: relative;
     top: 0;
-    margin-bottom: 0;
     border-bottom-width: 2px;
     border-bottom-style: solid;
     border-bottom-color: #FFDE06;
