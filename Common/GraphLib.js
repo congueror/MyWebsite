@@ -20,10 +20,19 @@ class Graph {
         options.dataset.forEach(value => this.dataset.push(new Data(value)));
 
         let infoY = height / 4;
-        div.innerHTML += `<span class="graph_info"
-                            style="float: left; top: ${infoY}px; right: 0; 
-                            border: 2px solid #ffffff; border-radius: 5px; padding: 5px;
-                            display: block; position: fixed; background-color: #835353; z-index: 3; opacity: 0"></span>`
+        if (document.getElementById("information_popup") === null) {
+            let info = document.createElement("span");
+            info.id = "information_popup";
+            info.className = "graph_info";
+            info.style = `float: left; top: ${infoY}px; right: 0; 
+            border: 2px solid #ffffff; border-radius: 5px; padding: 5px;
+            display: block; position: fixed; background-color: #835353; z-index: 3; opacity: 0`;
+            document.getElementsByTagName("BODY")[0].appendChild(info);
+            //div.innerHTML += `<span id="information_popup" class="graph_info"
+            //               style="float: left; top: ${infoY}px; right: 0;
+            //               border: 2px solid #ffffff; border-radius: 5px; padding: 5px;
+            //               display: block; position: fixed; background-color: #835353; z-index: 3; opacity: 0"></span>`
+        }
 
         if (options.title !== undefined) {
             let b = document.createElement("b");
@@ -217,7 +226,7 @@ class Graph {
     }
 
     onInfoMouseOver(element, desc) {
-        let a = document.getElementById(this.id).getElementsByClassName("graph_info")[0];
+        let a = document.getElementById("information_popup");
         a.innerHTML = desc;
 
         a.style.opacity = `1`;
@@ -225,13 +234,13 @@ class Graph {
     }
 
     onInfoMouseOut() {
-        let a = document.getElementById(this.id).getElementsByClassName("graph_info")[0];
+        let a = document.getElementById("information_popup");
         a.style.opacity = '0';
     }
 
     redraw() {
         let div = document.getElementById(this.id);
-        let a = div.getElementsByClassName("graph_info")[0];
+        let a = document.getElementById("information_popup");
         a.style.opacity = '0';
         a.innerHTML = '';
         let repeat = true;

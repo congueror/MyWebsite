@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Latex Parser</title>
+    <link rel="icon" type="image/x-icon" href="../icons/favicon.ico">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        textarea {
+            width: 80%;
+            height: 50px;
+        }
+
+        div {
+            display: inline-block;
+
+        }
+
+        #div {
+            display: block;
+            border: 1px solid red;
+            margin: 10px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <button onclick="copy()">Copy</button>
+    <button onclick="surround('\\[ ', ' \\]')">[]</button>
+    <button onclick="surround('\\( ', ' \\)')">()</button>
+    <button onclick="surround('\\', '')">\</button>
+    <button onclick="surround('\\lim_{x\\to', '}')">\( \lim_{x\to\square} \)</button>
+</div>
+
+<br>
+<textarea id="area" onchange="a()" onfocusout=""></textarea>
+<br>
+<span id="div"></span>
+</body>
+
+<script>
+    window.addEventListener('beforeunload', function (e) {
+        document.cookie = encodeURIComponent(document.getElementById("area").value);
+    });
+
+    window.addEventListener('load', e => {
+        document.getElementById("area").value = decodeURIComponent(document.cookie);
+        a();
+    })
+
+    function copy() {
+        let t = document.getElementById("area");
+
+        t.select();
+        t.setSelectionRange(0, 99999);
+
+        navigator.clipboard.writeText(t.value);
+
+        alert("Copied the text:\n" + t.value);
+    }
+
+    function a() {
+        let t = document.getElementById("area");
+        let div = document.getElementById("div");
+
+        document.cookie = encodeURIComponent(document.getElementById("area").value);
+        div.innerHTML = t.value;
+        MathJax.typeset();
+    }
+
+    function surround(l, r) {
+        let t = document.getElementById("area");
+        t.focus();
+        let startPos = t.selectionStart;
+        let endPos = t.selectionEnd;
+
+        let newValue1 = t.value.substring(0, startPos) + l;
+        let newValue2 = t.value.substring(startPos, endPos);
+        let newValue3 = r + t.value.substring(endPos, t.value.length);
+
+        t.value = newValue1 + newValue2 + newValue3;
+        t.selectionStart = newValue1.length + newValue2.length;
+        t.selectionEnd = newValue1.length + newValue2.length;
+    }
+</script>
+</html>

@@ -41,13 +41,14 @@ canvas {
 }
 
 .menu_button {
-    background-color: rgb(255, 215, 40);
+    background-color: rgb(185, 185, 185);
     background-image: url(../icons/home.png);
     background-repeat: no-repeat;
     background-size: 64px;
     background-position: center;
 
-    border: 0;
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: 5px;
 
     max-width: 64px;
     max-height: 64px;
@@ -60,12 +61,21 @@ canvas {
     z-index: 2;
     position: fixed;
 
-    background-color: rgb(255, 215, 40);
+    background-color: rgb(185, 185, 185);
     background-repeat: no-repeat;
     background-position: center;
 
+    border: 2px solid #ff3333;
+    border-radius: 5px;
+
     max-width: 64px;
     width: 64px;
-    height: 100%;
+    height: 99.55%;
     padding: 0;
+}
+
+@media print {
+    .menu_bar {
+        display: none;
+    }
 }
