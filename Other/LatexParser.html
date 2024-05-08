@@ -11,6 +11,7 @@
         textarea {
             width: 80%;
             height: 50px;
+            font-family: Consolas;
         }
 
         div {
@@ -23,6 +24,7 @@
             border: 1px solid red;
             margin: 10px;
             white-space: pre-line;
+            text-align: center;
         }
     </style>
 </head>
@@ -33,10 +35,12 @@
     <button onclick="surround('\\( ', ' \\)')">()</button>
     <button onclick="surround('\\', '')">\</button>
     <button onclick="surround('\\lim_{x\\to', '}')">\( \lim_{x\to\square} \)</button>
+    <button onclick="surround('(', ')\'')">\( (\square)' \)</button>
+    <button onclick="surround('\\begin{cases}', ', &  \\\\  , &  \\end{cases}')">\( \begin{cases} \square, & \square \\ \square , & \square \end{cases} \)</button>
 </div>
 
 <br>
-<textarea id="area" onchange="a()" onfocusout=""></textarea>
+<textarea id="area" onchange="a()" spellcheck="false"></textarea>
 <br>
 <span id="div"></span>
 </body>

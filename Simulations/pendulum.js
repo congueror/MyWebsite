@@ -26,7 +26,7 @@ class Pendulum {
         return -(this.gravity / (this.length / 100)) * Math.sin(theta);
     }
 
-    calculatePeriod() {
+    calculatePeriod() { // 2\\pi\\sqrt{(L/100)/g} * \\sum_{n=1}^{20} (\\frac{(2n)!}{(2^n*n!)^2})^2 * \\sin(\\frac{\\theta_0}{2})^{2n}
         let a = 2 * Math.PI * Math.sqrt((this.length / 100) / this.gravity);
         let series = 0;
         for (let i = 0; i < 20; i++) {
@@ -298,6 +298,8 @@ function createGraph(id, xValues, theoretical, experimental, error, title) {
                 cubicType: "natural",
                 x: [...xValues],
                 y: theoretical,
+                desc: `<h3 style='color: #E6E6FAFF'>Theoretical Period</h3>Theoretical period is calculated using 
+                \\[ T= 2\\pi\\sqrt{\\frac{L/100}{g}} \\sum_{n=1}^{20} (\\frac{(2n)!}{(2^nn!)^2})^2 \\cdot \\sin(\\frac{\\theta_0}{2})^{2n} \\]`
             },
             {
                 type: "data",
@@ -306,6 +308,8 @@ function createGraph(id, xValues, theoretical, experimental, error, title) {
                 cubicType: "natural",
                 x: [...xValues],
                 y: experimental,
+                desc: `<h3 style='color: #E6E6FAFF'>Experimental Period</h3>Experimental period is calculated using the 
+                time it takes for the simulation to execute 10 oscillations, \\( T=\\frac{t}{10} \\)`
             },
             {
                 type: "data",
@@ -314,6 +318,8 @@ function createGraph(id, xValues, theoretical, experimental, error, title) {
                 cubicType: "natural",
                 x: [...xValues],
                 y: error,
+                desc: `<h3 style='color: #E6E6FAFF'>Error Percentile</h3>Error percentile between the experimental and theoretical period. It is calculated using
+                the formula: \\[ \\%Error=\\frac{|T_{theoretical}-T_{experimental}|}{T_{experimental}}\\cdot 100 \\]`
             }
         ]
     });

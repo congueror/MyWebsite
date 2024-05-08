@@ -1,4 +1,5 @@
 body {
+    font-family: Arial;
     overflow-y: auto;
     background-color: #36393F;
     margin: 0;
@@ -75,6 +76,11 @@ canvas {
 }
 
 @media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+
     .menu_bar {
         display: none;
     }

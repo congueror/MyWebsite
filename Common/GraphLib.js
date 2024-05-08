@@ -1,6 +1,13 @@
 class Graph {
     static GRAPHS = new Map();
 
+    /**
+     * The main constructor for the graph.
+     * @param id The string id of a div element.
+     * @param width The desired width which will be assigned to the element's stylesheet
+     * @param height The desired height which will be assigned to the element's stylesheet
+     * @param options An object containing the content that will be drawn.
+     */
     constructor(id, width, height, options) {
         Graph.GRAPHS.set(id, this);
 
@@ -261,7 +268,7 @@ class Graph {
         let c = document.createElement("canvas");
         c.width = this.width;
         c.height = this.height;
-        c.style = "position:absolute;top:20px";
+        c.style = "position:absolute;top:20px;left:0";
         element.appendChild(c);
         let ctx = c.getContext("2d");
 
@@ -282,6 +289,7 @@ class Graph {
             ctx.stroke();
 
             t = this.minX === undefined ? this.xElements[i] : this.minX + this.xIncrement * i;
+            t = Math.round(t * 100) / 100;
             let xWidth = ctx.measureText(t).width;
             ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
@@ -295,6 +303,7 @@ class Graph {
             ctx.stroke();
 
             t = t + this.xIncrement * xDec;
+            t = Math.round(t * 100) / 100;
             let xWidth = ctx.measureText(t).width;
             ctx.fillText(t, x - xWidth / 2, this.height - 20);
         }
@@ -309,6 +318,7 @@ class Graph {
             ctx.stroke();
 
             t = this.minY + this.yIncrement * i;
+            t = Math.round(t * 100) / 100;
             let yWidth = ctx.measureText(t).width;
             ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
         }
@@ -323,6 +333,7 @@ class Graph {
             ctx.stroke();
 
             t = t + this.yIncrement * yDec;
+            t = Math.round(t * 100) / 100;
             let yWidth = ctx.measureText(t).width;
             ctx.fillText(t, 20 - (yWidth - baseWidth), y + 7);
         }
@@ -362,7 +373,7 @@ class Graph {
         c = document.createElement("canvas");
         c.width = this.width;
         c.height = this.height;
-        c.style = "position:absolute; top:20px";
+        c.style = "position:absolute; top:20px;left:0";
         element.appendChild(c);
         ctx = c.getContext("2d");
 
@@ -551,12 +562,18 @@ class Graph {
                 x0 = data.x[i],
                 x1 = data.x[i + 1];
 
+            let domain = `[${x0},${x1}]`;
+            if (data.customDomain && i === 0)
+                domain = `[${new Domain(data.domain).min},${x1}]`;
+            if (data.customDomain && i === variables.rows / 4 - 1)
+                domain = `[${x0},${new Domain(data.domain).max}]`;
+
             let newData = new Data({
                 type: "function",
                 fun: function (x) {
                     return a * Math.pow(x, 3) + b * Math.pow(x, 2) + c * x + d;
                 },
-                domain: `[${x0},${x1}]`,
+                domain: domain,
                 color: data.color,
             });
 
@@ -577,6 +594,9 @@ class Graph {
             weights.push(product);
         }
 
+        let domain = `[${data.x[0]},${data.x[n - 1]}]`;
+        if (data.customDomain)
+            domain = data.domain;
 
         let newData = new Data({
             type: "function",
@@ -591,7 +611,7 @@ class Graph {
                 }
                 return sum1 / sum2;
             },
-            domain: `[${data.x[0]},${data.x[n - 1]}]`,
+            domain: domain,
             color: data.color,
         });
 
@@ -708,6 +728,7 @@ class Data {
         parameterIncrement: 0.01,
         animationInterval: 0,
         cubicType: "natural",
+        customDomain: false
     };
 
     constructor(obj, defaults) {
@@ -719,6 +740,9 @@ class Data {
 
         if (this.type === "data") {
             this.tryAssign(obj, ["interpolation", "x", "y"]);
+            this.defaultAssign(obj, defaults, ["customDomain"]);
+            if (obj.customDomain)
+                this.defaultAssign(obj, defaults, ["domain"]);
             if (obj.interpolation === "cubic")
                 this.defaultAssign(obj, defaults, ["cubicType"]);
         }

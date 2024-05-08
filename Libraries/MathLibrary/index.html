@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mathematics Library</title>
+    <link rel="stylesheet" href="../../Simulations/style.css">
+    <link rel="icon" type="image/x-icon" href="../../icons/favicon.ico">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <script src="../../main.js"></script>
+
+    <style>
+        h3 {
+            margin-top: 0;
+        }
+
+        h4 {
+            margin-top: 0;
+        }
+
+        div {
+            text-align: center;
+            color: #E6E6FAFF;
+        }
+
+        #content {
+            text-align: left;
+            display: inline-block;
+        }
+
+        .contentDiv {
+            text-align: left;
+            display: inline-block;
+            border-left: 1px solid #ff3333;
+        }
+
+        ul {
+            display: inline-block;
+            text-align: left;
+        }
+
+        ol {
+            display: inline-block;
+            text-align: left;
+        }
+
+        a {
+            color: #DBDBD7;
+        }
+
+        a:hover {
+            color: #ff3333;
+        }
+
+        .solutionDiv {
+            display: inline-block;
+            margin-bottom: 10px;
+            border: 1px solid #ff3333;
+            border-radius: 5px;
+            min-width: 40%;
+        }
+
+        .make_graph {
+            display: inline-block;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+<div class="menu_bar">
+    <button class="menu_button" role="button" onclick="rootRedirect('')"></button>
+    <button class="menu_button" role="button" onclick="openMenu()"
+            style="background-image: url(../../icons/menu.png)"></button>
+    <button class="menu_button" role="button" onclick="openMenu()"
+            style="background-image: url(../../icons/lang.png)"></button>
+</div>
+
+<br>
+
+<div>
+    <div id="header" style="border-bottom: 1px solid #DBDBD7">
+
+    </div>
+
+    <br>
+
+    <div id="progress"></div>
+
+    <div id="content"></div>
+    <div id="problems"></div>
+</div>
+
+</body>
+
+<script src="../../Common/CommonLib.js"></script>
+<script src="../../Common/MathLib.js"></script>
+<script src="../../Common/GraphLib.js"></script>
+<script src="data.js"></script>
+<script src="main.js"></script>
+
+</html>
