@@ -62,6 +62,29 @@ function fillDefault() {
     let problems = document.getElementById('problems');
     problems.innerHTML += '<h1>Search All Problems by Tag</h1>';
 
+    let tags = new Set();
+    DATA[language].forEach(o => {
+        tags = tags.union(parseTags(o));
+    });
+
+}
+
+function parseTags(o) {
+    let tags = new Set();
+    if (o.problems) {
+        o.problems.forEach(p => {
+            if (p.tags)
+                for (const t in p.tags)
+                    tags.add(p.tags[t]);
+
+        })
+    } else if (o.subunits) {
+        o.subunits.forEach(p => {
+            tags = tags.union(parseTags(p));
+        });
+    }
+
+    return tags;
 }
 
 function addContent(o, parent, depth, enumerate) {
