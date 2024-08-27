@@ -2,11 +2,22 @@ function createRootRedirectLink(loc, ...params) {
 
     if (!loc.startsWith('/'))
         loc = '/' + loc;
-    location.pathname = loc;
+
+    let m = htmlParametersToMap(location.search);
+    if (!params.includes("clearAll")) {
+        params.forEach((v) => {
+            let pair = v.split('=');
+            m.set(pair[0], pair[1]);
+        });
+    } else {
+        m.clear();
+    }
+
+    return location.origin + loc + mapToHtmlParameters(m);
 }
 
 function rootRedirect(loc, ...params) {
-    createRootRedirectLink(loc, params);
+    location.href = createRootRedirectLink(loc, ...params);
 }
 
 function htmlParametersToMap(parameters) {

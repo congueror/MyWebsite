@@ -110,7 +110,7 @@ const DATA = {
                             tags: ["even_odd"]
                         },
                         {
-                            passage: `Determine if the function is even, odd or neither: \\[ f(x)=X^3-4x \\]`,
+                            passage: `Determine if the function is even, odd or neither: \\[ f(x)=x^3-4x \\]`,
                             solution: `Function has domain \\(Δ= \\mathbb{R} \\) and, 
                             \\[ f(-x)=-x^3+4x=-f(x) \\] So it is true that for every \\( x\\in Δ \\) 
                             and there exists \\( -x\\in Δ\\) and \\( f(-x)=-f(x) \\), hence the function is odd.`,
