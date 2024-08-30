@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Mathematics Library</title>
@@ -8,7 +9,7 @@
     <link rel="icon" type="image/x-icon" href="../../icons/favicon.ico">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script type="text/javascript" id="MathJax-script" async
-            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <script src="../../main.js"></script>
 
     <style>
@@ -66,32 +67,56 @@
             display: inline-block;
             position: relative;
         }
+
+        .next_page {
+            background-color: rgba(0,0,0,0);
+            background-image: url(../../icons/right_arrow.png);
+            background-repeat: no-repeat;
+            background-size: 64px;
+            background-position: center;
+            border: 0;
+            max-width: 64px;
+            max-height: 64px;
+            width: 64px;
+            height: 64px;
+        }
+
+        .next_page:hover {
+            filter: invert();
+        }
+
+        .problem_footer {
+            text-align: left;
+            color: #6363638c;
+            font-size: 10px;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="menu_bar">
-    <button class="menu_button" role="button" onclick="rootRedirect('', 'clearAll')"></button>
-    <button class="menu_button" role="button" onclick="openMenu()"
+    <div class="menu_bar">
+        <button class="menu_button" role="button" onclick="rootRedirect('', 'clearAll')"></button>
+        <button class="menu_button" role="button" onclick="openMenu()"
             style="background-image: url(../../icons/menu.png)"></button>
-    <button class="menu_button" role="button" onclick="openMenu()"
+        <button class="menu_button" role="button" onclick="openMenu()"
             style="background-image: url(../../icons/lang.png)"></button>
-</div>
-
-<br>
-
-<div>
-    <div id="header" style="border-bottom: 1px solid #DBDBD7">
-
     </div>
 
     <br>
 
-    <div id="progress"></div>
+    <div id="body_div">
+        <div id="header" style="border-bottom: 1px solid #DBDBD7">
 
-    <div id="content"></div>
-    <div id="problems"></div>
-</div>
+        </div>
+
+        <br>
+
+        <div id="progress"></div>
+
+        <div id="content"></div>
+        <div id="problems"></div>
+    </div>
 
 </body>
 
