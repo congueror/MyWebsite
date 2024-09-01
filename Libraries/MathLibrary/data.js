@@ -593,6 +593,52 @@ Therefore, it applies that:
             ]
         },
         {
+            id: "discrete_math",
+            title: "Discrete Mathematics",
+            subunits: [
+                {
+                    id: "sequences",
+                    title: "Sequences",
+                    definition: "Any function \\( a \\) with domain \\( \\mathbb{N} \\) and range \\( \\mathbb{R} \\) is called a sequence of natural numbers and is symbolized: \\( a:\\mathbb{N}\\rightarrow\\mathbb{R} \\)",
+                    subunits: [
+                        {
+                            id: "ar_sequence",
+                            title: "Arithmetic Sequence",
+                            definition: `Arithmetic Sequence is the sequence \\( a_ν \\) for which every term occures when adding the previous one with a constant number (\\(δ\\)).
+                                        \\[ a_{ν+1}=a_{ν}+δ, ν=1,2,3,... \\]
+                                        Where \\(a_ν\\) is the \\(ν\\)-th term of the sequence and \\(δ\\) is the constant difference defined in the sequence. <br> 
+                                        The generic term for an arithmetic sequence is as follows:
+                                        \\[ a_ν=a_1+(ν-1)δ \\]
+                                        The sum of the sequence can be calculated using the formula:
+                                        \\[ S_ν=\\frac{ν}{2}(a_1+a_ν) \\Leftrightarrow S_ν=\\frac{ν}{2}(2a_1+(ν-1)δ) \\]
+                                        <p class="left">Notes:</p> 
+                                        <ul>
+                                            <li>If you have terms a,b,c which are consecutive terms of a arithemtic series, then the middle term is simply equal to the mean value of the other two: \\[b=\\frac{a+c}{2}\\]</li>
+                                        </ul>`
+                                        
+                        },
+                        {
+                            id: "geo_sequence",
+                            title: "Geometric Sequence",
+                            definition: `Geometric Sequence is the sequence \\( a_ν \\) for which every term occures when multiplying the previous one with a constant number (\\(λ\\))
+                                        \\[ a_{ν+1}=λ\\cdot a_{ν}, ν=1,2,3,... \\]
+                                        Where \\(a_ν\\) is the \\(ν\\)-th term of the sequence and \\(λ\\) is the constant ratio defined in the sequence. <br> 
+                                        The generic term for a geometric sequence is as follows:
+                                        \\[ a_ν=a_1\\cdot λ^{ν-1} \\]
+                                        The sum of the sequence can be calculated using a formula depending on the value of the ratio \\(λ\\):
+                                        \\[ \\text{For }λ=1,\\ S_ν=νa_ν \\]
+                                        \\[ \\text{For }λ\\neq 1,\\ S_ν=\\frac{a_1(1-λ^ν)}{1-λ} \\]
+                                        \\[ \\text{For }|λ|<1,\\ S_{\\infty}=\\frac{a_1}{1-λ} \\]
+                                        <p class="left">Notes:</p> 
+                                        <ul>
+                                            <li>If you have terms a,b,c which are consecutive terms of a geometric series, then the middle term is simply equal to the square root of the other two: \\[b=\\sqrt{ac}\\]</li>
+                                        </ul>`
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             id: "inverse_trig_fun",
             title: "Inverse Trigonometric Functions",
             subunits: [
