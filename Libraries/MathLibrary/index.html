@@ -13,6 +13,46 @@
     <script src="../../main.js"></script>
 
     <style>
+        #body_div {
+            margin-left: 64px;
+        }
+
+        #quick_menu {
+            position: absolute;
+            border: 1px solid #ff3333;
+            border-left: 0;
+            border-radius: 10px;
+            z-index: 10;
+            left: 66px;
+            top: 64px;
+            background-color: rgb(66, 56, 56);
+            overflow-y: scroll;
+            height: 85%;
+            width: 400%;
+        }
+
+        #quick_menu::-webkit-scrollbar {
+            opacity: 0;
+        }
+
+        #lang_menu {
+            position: absolute;
+            border: 1px solid #ff3333;
+            border-left: 0;
+            border-radius: 10px;
+            z-index: 10;
+            left: 66px;
+            top: 128px;
+            background-color: rgb(66, 56, 56);
+            overflow-y: scroll;
+            height: 75%;
+            width: 400%;
+        }
+
+        #lang_menu::-webkit-scrollbar {
+            opacity: 0;
+        }
+
         h3 {
             margin-top: 0;
         }
@@ -100,11 +140,13 @@
 <body>
 
     <div class="menu_bar">
-        <button class="menu_button" role="button" onclick="rootRedirect('', 'clearAll')"></button>
+        <button class="menu_button" role="button" onclick="rootRedirect('', 'clear')"></button>
         <button class="menu_button" role="button" onclick="openMenu()"
             style="background-image: url(../../icons/menu.png)"></button>
-        <button class="menu_button" role="button" onclick="openMenu()"
+        <button class="menu_button" role="button" onclick="openLang()"
             style="background-image: url(../../icons/lang.png)"></button>
+        <div id="quick_menu" hidden></div>
+        <div id="lang_menu" hidden></div>
     </div>
 
     <br>
@@ -121,6 +163,7 @@
         <div id="content"></div>
         <div id="problems"></div>
     </div>
+
 
 </body>
 

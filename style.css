@@ -3,6 +3,40 @@ body {
     color: #DBDBD7;
 }
 
+.menu_bar {
+    z-index: 2;
+    position: fixed;
+
+    background-color: rgb(185, 185, 185);
+    background-repeat: no-repeat;
+    background-position: center;
+
+    border: 2px solid #ff3333;
+    border-radius: 5px;
+
+    max-width: 64px;
+    width: 64px;
+    height: 99.55%;
+    padding: 0;
+}
+
+.menu_button {
+    background-color: rgb(185, 185, 185);
+    background-image: url(../icons/home.png);
+    background-repeat: no-repeat;
+    background-size: 64px;
+    background-position: center;
+
+    border: 1px solid rgb(185, 185, 185);
+    border-radius: 5px;
+
+    max-width: 64px;
+    max-height: 64px;
+    width: 64px;
+    height: 64px;
+    padding: 0;
+}
+
 .live_search {
     height: 50px;
     width: 650px;
@@ -17,6 +51,7 @@ body {
     padding-right: 40px;
     color:#fff;
 
+    text-align: center;
     
     margin-bottom: 20px;
     

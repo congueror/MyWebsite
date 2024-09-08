@@ -1,9 +1,11 @@
 function openMenu() {
-
+    document.getElementById("quick_menu").hidden = !document.getElementById("quick_menu").hidden;
+    document.getElementById("lang_menu").hidden = true;
 }
 
 function openLang() {
-
+    document.getElementById("lang_menu").hidden = !document.getElementById("lang_menu").hidden;
+    document.getElementById("quick_menu").hidden = true;
 }
 
 /**
@@ -26,8 +28,10 @@ function getObjData(obj, id) {
     }
 }
 
-var language = "en_us";
 var params = new URLSearchParams(window.location.search);
+var language = "en_us";
+if (params.has("lang"))
+    language = params.get("lang");
 /**
  * @type {Set<string>}
  */
@@ -41,6 +45,9 @@ fill();
 addGraphs();
 
 function fill() {
+    createQuickMenu();
+    createLangMenu();
+
     let header = document.getElementById("header");
     let id = params.get("id");
     let obj;
@@ -49,7 +56,7 @@ function fill() {
         <div style="display: inline-block; background-color: #43388f; padding: 5px"><p >${obj.definition ? obj.definition : ''}</p></div>`;
         if (obj.subunits) {
             let depth = obj.id.split(".").length;
-            obj.subunits.forEach(o => addContent(o, id, 0));
+            obj.subunits.forEach(o => addContent(o, id, 0, document.getElementById("content")));
         }
         if (obj.problems) {
             for (let i = 0; i < obj.problems.length; i++) {
@@ -61,6 +68,43 @@ function fill() {
         document.getElementById("progress").innerText = `${(totalProblems - wipProblems) / totalProblems * 100}%`;
     } else
         fillDefault();
+}
+
+function createQuickMenu() {
+    let div = document.getElementById("quick_menu");
+    let h = document.createElement("h3");
+    h.style.borderBottom = "1px solid #DBDBD7";
+    h.insertAdjacentText("afterbegin", "Quick Navigation");
+    div.append(h);
+
+    let s = createRootRedirectLink("Libraries/MathLibrary/index.html", "clear", "lang="+language);
+    div.insertAdjacentHTML("beforeend", `<h2> <a href="${s}">Home</a> </h2>`);
+
+    let cont = document.createElement("div");
+    cont.id = "menu_content";
+    cont.className = "contentDiv";
+    div.append(cont);
+    DATA[language].forEach(o => {
+        addContent(o, "", 0, cont);
+    });
+}
+
+function createLangMenu() {
+    let div = document.getElementById("lang_menu");
+    let h = document.createElement("h3");
+    h.style.borderBottom = "1px solid #DBDBD7";
+    h.insertAdjacentText("afterbegin", "Change Language");
+    div.append(h);
+
+    let langs = document.createElement("div");
+    div.append(langs)
+    Object.getOwnPropertyNames(DATA).forEach(l => {
+        let link = document.createElement("a");
+        link.href = createRootRedirectLink("Libraries/MathLibrary/index.html", "clear", "lang="+l);
+        link.insertAdjacentText("beforeend", l);
+        langs.append(link)
+        langs.insertAdjacentHTML("beforeend", "</br>")
+    });
 }
 
 function addGraphs() {
@@ -77,7 +121,7 @@ function fillDefault() {
     document.getElementById("header").innerHTML += `<h1>Welcome to the Library of Mathematics</h1>
         <h2>A Collection of mathematical problems and concepts for easy access and easy practice.</h2>`;
     DATA[language].forEach(o => {
-        addContent(o, "", 0);
+        addContent(o, "", 0, document.getElementById("content"));
     });
 
     let problemsArray = [];
@@ -109,7 +153,7 @@ function createTagSearchBar() {
     s2.setAttribute("onkeyup", "searchTag()");
     s2.type = "text";
     s2.name = "search";
-    s2.placeholder = "Filter tags... Use &(AND) and |(OR) for more advanced filtering.";
+    s2.placeholder = "Filter tags...";
 
     body_div.insertBefore(s1, problems);
     body_div.insertBefore(s2, problems);
@@ -250,7 +294,7 @@ function getAllProblems(o, arr, predicate) {
     return arr;
 }
 
-function addContent(o, parent, depth, enumerate) {
+function addContent(o, parent, depth, element, enumerate) {
     let title = document.createElement("h" + (depth + 2));
     title.id = parent === "" ? o.id : parent + "." + o.id;
     let a = document.createElement("a");
@@ -267,11 +311,11 @@ function addContent(o, parent, depth, enumerate) {
 
     if (depth > 0) {
         let contentDiv;
-        if (document.getElementById(`${parent}#`)) {
-            contentDiv = document.getElementById(`${parent}#`);
+        if (document.getElementById(`${element.id}.${parent}#`)) {
+            contentDiv = document.getElementById(`${element.id}.${parent}#`);
         } else {
             contentDiv = document.createElement("div");
-            contentDiv.id = `${parent}#`
+            contentDiv.id = `${element.id}.${parent}#`
             contentDiv.className = "contentDiv";
         }
         contentDiv.style = `margin-left: ${(depth - 1) * 10}px`
@@ -279,11 +323,11 @@ function addContent(o, parent, depth, enumerate) {
 
         let ind = parent.lastIndexOf('.');
         if (ind === -1)
-            document.getElementById("content").appendChild(contentDiv);
+            element.appendChild(contentDiv);
         else
-            document.getElementById(parent.substring(0, ind) + "#").appendChild(contentDiv);
+            document.getElementById(`${element.id}.${parent.substring(0, ind)}#`).appendChild(contentDiv);
     } else
-        document.getElementById("content").appendChild(title);
+        element.appendChild(title);
 
     parent = title.id;
     depth++;
@@ -299,7 +343,7 @@ function addContent(o, parent, depth, enumerate) {
         } else
             enumerate++;
 
-        addContent(o.subunits[u], parent, depth, enumerate);
+        addContent(o.subunits[u], parent, depth, element, enumerate);
     }
 }
 

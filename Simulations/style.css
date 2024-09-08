@@ -24,6 +24,7 @@ canvas {
     z-index: 3;
     position: absolute;
     background-color: #d6e1fa;
+    color: #1f2025;
     border-width: 2px;
     border-style: solid;
     border-color: #1f2025;
@@ -39,40 +40,6 @@ canvas {
     padding: 5px;
     margin-left: 80px;
     margin-top: 5px;
-}
-
-.menu_button {
-    background-color: rgb(185, 185, 185);
-    background-image: url(../icons/home.png);
-    background-repeat: no-repeat;
-    background-size: 64px;
-    background-position: center;
-
-    border: 1px solid rgb(185, 185, 185);
-    border-radius: 5px;
-
-    max-width: 64px;
-    max-height: 64px;
-    width: 64px;
-    height: 64px;
-    padding: 0;
-}
-
-.menu_bar {
-    z-index: 2;
-    position: fixed;
-
-    background-color: rgb(185, 185, 185);
-    background-repeat: no-repeat;
-    background-position: center;
-
-    border: 2px solid #ff3333;
-    border-radius: 5px;
-
-    max-width: 64px;
-    width: 64px;
-    height: 99.55%;
-    padding: 0;
 }
 
 @media print {
